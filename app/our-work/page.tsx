@@ -20,6 +20,8 @@ const prints = [
   { title: "Yellow Chomper", image: "/images/our-work/yellow-chomper.jpg", note: "Character desk collectible" },
   { title: "Pumpkin Cupcake Clicker", image: "/images/our-work/pumpkin-cupcake.jpg", note: "Seasonal sensory collectible" },
   { title: "Halloween Donut Collection", image: "/images/our-work/halloween-donut-collection.jpg", note: "Four-piece seasonal clicker set" },
+  { title: "Spiderweb Donut Gift Set", image: "/images/our-work/spiderweb-donut-gift-set.jpg", note: "Purple and black two-piece clicker set" },
+  { title: "Halloween Keyboard Clicker", image: "/images/our-work/halloween-keyboard-clicker.jpg", note: "Spider-and-bats two-key sensory clicker" },
   { title: "Skull Pumpkin Cauldron", image: "/images/our-work/01-skull-pumpkin-cauldron.jpg", note: "Multi-color Halloween container" },
   { title: "Pink Smiley Tumbler", image: "/images/our-work/02-pink-smiley-tumbler.jpg", note: "Miniature kawaii desk collectible" },
   { title: "Blue Puppy Carrier", image: "/images/our-work/03-blue-dog-carrier.jpg", note: "Pastel pet-carrier collectible" },
