@@ -1,0 +1,2 @@
+insert into printers(name,status,current_job,progress) values ('Printer 1','printing','Pumpkin Clicker',74),('Printer 2','printing','Glow Ghost',28),('Printer 3','prototype','Sneaker Collection',15);
+insert into design_vault_items(name,description,stage,vote_count) values ('Sneaker Collection','Shoebox clickers inspired by sneaker culture','prototype',42),('Stanley Collection','Drinkware-inspired clickers','designing',31),('Glow Collection','Night-ready sensory pieces','testing',26);

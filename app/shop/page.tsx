@@ -1,0 +1,1 @@
+import{getProducts}from"@/lib/data";import{ShopClient}from"./shop-client";export const metadata={title:"Shop"};export default async function Page(){return <ShopClient products={await getProducts()}/>}

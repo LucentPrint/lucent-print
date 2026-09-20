@@ -1,0 +1,26 @@
+begin;
+insert into public.collections(name,slug,description,featured,is_active,sort_order) values
+('Halloween','halloween','Limited seasonal clickers and bundles',true,true,1),
+('Sneaker','sneaker','Sneaker-culture inspired clickers',true,true,2),
+('Glow','glow','Glow-in-the-dark sensory designs',false,true,3),
+('Custom','custom','Made-to-order creations',true,true,4)
+on conflict(slug) do update set name=excluded.name,description=excluded.description,featured=excluded.featured,is_active=excluded.is_active,sort_order=excluded.sort_order;
+
+insert into public.products(slug,sku,name,description,price,category,collection_id,collection_name,material,colors,tags,images,status,inventory_quantity,featured,best_seller,is_active,sort_order,seo_title,seo_description) values
+('pumpkin-clicker','LP-HAL-PUM-001','Pumpkin Clicker','Seasonal collectible clicker in orange and black.',16,'Clickers',(select id from collections where slug='halloween'),'Halloween','Premium PLA','["Orange","Black"]','["halloween","pumpkin","fidget"]','["/images/pumpkin.jpg"]','preorder',24,true,true,true,1,'Pumpkin Clicker | Lucent Print','Premium 3D printed pumpkin clicker by Lucent Print.'),
+('witch-cauldron-clicker','LP-HAL-CAU-002','Witch Cauldron Clicker','Detailed black, green, and pink Halloween clicker.',16,'Clickers',(select id from collections where slug='halloween'),'Halloween','Premium PLA','["Black","Green","Pink"]','["halloween","witch","cauldron"]','["/images/cauldron.jpg"]','preorder',18,true,true,true,2,'Witch Cauldron Clicker | Lucent Print','Premium 3D printed cauldron clicker.'),
+('skull-clicker','LP-HAL-SKU-003','Skull Clicker','Minimal white and black seasonal clicker.',14,'Clickers',(select id from collections where slug='halloween'),'Halloween','Premium PLA','["White","Black"]','["halloween","skull","fidget"]','["/images/skull.jpg"]','preorder',30,false,false,true,3,'Skull Clicker | Lucent Print','Black and white 3D printed skull clicker.'),
+('ghost-clicker','LP-HAL-GHO-004','Ghost Clicker','Friendly ghost clicker for spooky-season collectors.',14,'Clickers',(select id from collections where slug='halloween'),'Halloween','Premium PLA','["White","Black"]','["halloween","ghost","fidget"]','["/images/ghost.jpg"]','preorder',30,true,false,true,4,'Ghost Clicker | Lucent Print','Friendly 3D printed ghost clicker.'),
+('halloween-design-coming-soon-1','LP-HAL-TBD-005','New Halloween Design','A new seasonal clicker is in development. Live photos coming soon.',0,'Coming Soon',(select id from collections where slug='halloween'),'Halloween','Premium PLA','[]','["halloween","coming soon"]','["/images/lucent-print-coming-soon.webp"]','coming_soon',0,false,false,true,5,'New Halloween Design | Lucent Print','A new Lucent Print seasonal design is coming soon.'),
+('halloween-design-coming-soon-2','LP-HAL-TBD-006','New Halloween Design','Another Halloween release is being prepared for launch.',0,'Coming Soon',(select id from collections where slug='halloween'),'Halloween','Premium PLA','[]','["halloween","coming soon"]','["/images/lucent-print-coming-soon.webp"]','coming_soon',0,false,false,true,6,'Halloween Release Coming Soon | Lucent Print','Another Lucent Print Halloween design is coming soon.'),
+('sneaker-collection-clickers','LP-SNK-COL-007','Sneaker Collection Clickers','Shoebox clickers inspired by sneaker culture.',0,'Sneaker Clickers',(select id from collections where slug='sneaker'),'Sneaker','Premium PLA','["Multiple colors"]','["sneaker","shoebox","fidget"]','["/images/lucent-print-coming-soon.webp"]','coming_soon',0,true,false,true,7,'Sneaker Collection Clickers | Lucent Print','Upcoming sneaker-culture shoebox clickers.'),
+('glow-collection','LP-GLW-COL-008','Glow Collection','Night-ready sensory and seasonal designs.',0,'Sensory',(select id from collections where slug='glow'),'Glow','Glow PLA','["Glow","White"]','["glow","sensory","night"]','["/images/lucent-print-coming-soon.webp"]','coming_soon',0,true,false,true,8,'Glow Collection | Lucent Print','Upcoming glow-in-the-dark sensory collection.')
+on conflict(slug) do update set sku=excluded.sku,name=excluded.name,description=excluded.description,price=excluded.price,category=excluded.category,collection_id=excluded.collection_id,collection_name=excluded.collection_name,material=excluded.material,colors=excluded.colors,tags=excluded.tags,images=excluded.images,status=excluded.status,inventory_quantity=excluded.inventory_quantity,featured=excluded.featured,best_seller=excluded.best_seller,is_active=excluded.is_active,sort_order=excluded.sort_order,seo_title=excluded.seo_title,seo_description=excluded.seo_description,updated_at=now();
+
+insert into public.printers(name,status,current_job,progress) values
+('Printer 1','printing','Pumpkin Clicker',74),('Printer 2','printing','Glow Ghost',28),('Printer 3','prototype','Sneaker Collection',15)
+on conflict do nothing;
+insert into public.design_vault_items(name,description,stage,vote_count,is_public) values
+('Sneaker Collection','Shoebox clickers inspired by sneaker culture','prototype',42,true),('Stanley Collection','Drinkware-inspired clickers','designing',31,true),('Glow Collection','Night-ready sensory pieces','testing',26,true)
+on conflict do nothing;
+commit;

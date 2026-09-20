@@ -1,0 +1,1 @@
+"use client";import type{Product}from"@/lib/types";import{useCart}from"@/components/cart-provider";export function AddButton({product}:{product:Product}){const{add}=useCart();return <button onClick={()=>add(product)} className="btn btn-primary mt-8 w-full">Add to cart</button>}

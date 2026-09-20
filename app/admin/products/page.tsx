@@ -1,0 +1,2 @@
+import{requireAdmin}from"@/lib/auth";import Link from"next/link";import{ProductManager}from"./product-manager";
+export default async function Page(){if(!await requireAdmin())return <section className="section"><div className="shell"><h1 className="title">Admin sign-in required.</h1><Link className="btn btn-primary mt-6" href="/auth/sign-in">Sign in</Link></div></section>;return <section className="section"><div className="shell"><p className="eyebrow">Admin</p><h1 className="title my-6">Products & inventory</h1><ProductManager/></div></section>}

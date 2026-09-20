@@ -1,0 +1,9 @@
+export type ProductStatus = "draft" | "active" | "preorder" | "coming_soon" | "sold_out" | "archived";
+export type Product = { id:string; slug:string; name:string; description:string; price:number; compareAtPrice:number|null; category:string; collection:string; material:string; colors:string[]; images:string[]; status:ProductStatus; inventory:number; featured:boolean; bestSeller:boolean; };
+export type CartItem = { product:Product; quantity:number; selectedColor?:string; };
+export type Collection = { id:string; name:string; slug:string; description:string; imageUrl?:string|null; featured:boolean; sortOrder:number; };
+export type Printer = { id:string; name:string; status:string; currentJob:string; progress:number; estimatedCompletion?:string|null; lastUpdated?:string|null; };
+export type DesignVaultItem = { id:string; name:string; description:string; stage:string; imageUrl?:string|null; voteCount:number; };
+export type Review = { id:string; rating:number; title?:string|null; body?:string|null; verified:boolean; createdAt:string; reviewerName?:string|null; };
+export type Address = { id?:string; label?:string; fullName:string; line1:string; line2?:string; city:string; state:string; postalCode:string; country:string; phone?:string; };
+export type OrderSummary = { id:string; status:string; total:number; provider?:string|null; trackingNumber?:string|null; createdAt:string; items?:Array<{name:string;quantity:number;price:number}>; };
