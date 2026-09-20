@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { ResourceManager } from "./resource-manager";
 
 const map: Record<string, string> = {
-  inventory: "inventory_events", orders: "orders", collections: "collections", reviews: "reviews",
+  inventory: "inventory_events", orders: "orders", "custom-shirt-orders": "custom_orders", collections: "collections", reviews: "reviews",
   coupons: "coupons", newsletter: "newsletter_subscribers", "design-vault": "design_vault_items",
   "print-lab": "printers", wholesale: "wholesale_quotes", affiliates: "affiliate_applications",
   analytics: "analytics_events", loyalty: "loyalty_transactions", "etsy-listings": "etsy_listings",
