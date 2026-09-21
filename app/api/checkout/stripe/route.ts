@@ -64,6 +64,14 @@ export async function POST(req: Request) {
     const user = supabase ? (await supabase.auth.getUser()).data.user : null;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const stripe = new Stripe(apiKey);
+    const subtotal = safeItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = [{
+      shipping_rate_data: {
+        type: "fixed_amount",
+        fixed_amount: { amount: subtotal >= 75 ? 0 : 695, currency: "usd" },
+        display_name: subtotal >= 75 ? "Free shipping" : "Standard shipping",
+      },
+    }];
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       integration_identifier: "lucent_print_qmvtrazk",
@@ -73,6 +81,7 @@ export async function POST(req: Request) {
       allow_promotion_codes: true,
       billing_address_collection: "auto",
       shipping_address_collection: { allowed_countries: ["US"] },
+      shipping_options: shippingOptions,
       customer_email: user?.email,
       client_reference_id: user?.id,
       metadata: { items: JSON.stringify(safeItems).slice(0, 4900) },
