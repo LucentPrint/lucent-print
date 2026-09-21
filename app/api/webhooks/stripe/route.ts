@@ -34,9 +34,15 @@ export async function POST(req: Request) {
       const supabase = createAdminClient();
 
       if (supabase) {
-        const items = JSON.parse(session.metadata?.items || "[]") as Array<{
-          id: string; name: string; price: number; quantity: number;
-        }>;
+        type PaidItem = { id: string; name: string; price: number; quantity: number; isApparel?: boolean; chargedPrice?: number };
+        const itemEntries = Object.entries(session.metadata ?? {})
+          .filter(([key]) => key.startsWith("item_"))
+          .sort(([left], [right]) => Number(left.slice(5)) - Number(right.slice(5)));
+        const items = itemEntries.length
+          ? itemEntries.map(([, value]) => JSON.parse(value) as PaidItem)
+          : JSON.parse(session.metadata?.items || "[]") as PaidItem[];
+        const paymentPlan = session.metadata?.payment_plan === "deposit" ? "deposit" : "full";
+        const apparelBalanceDue = Number(session.metadata?.apparel_balance_due || 0);
         const existing = await supabase.from("orders").select("id").eq("provider_order_id", session.id).maybeSingle();
         let order = existing.data;
         let createdNow = false;
@@ -45,7 +51,7 @@ export async function POST(req: Request) {
           const created = await supabase.from("orders").insert({
             user_id: session.client_reference_id || null,
             email: session.customer_details?.email,
-            status: "paid", provider: "stripe", provider_order_id: session.id,
+            status: paymentPlan === "deposit" ? "pending" : "paid", provider: "stripe", provider_order_id: session.id,
             subtotal: (session.amount_subtotal || 0) / 100,
             shipping: Number(session.total_details?.amount_shipping || 0) / 100,
             tax: Number(session.total_details?.amount_tax || 0) / 100,
@@ -60,6 +66,7 @@ export async function POST(req: Request) {
         if (createdNow && order?.id && items.length) {
           const insertedItems = await supabase.from("order_items").insert(items.map((item) => ({
             order_id: order!.id, product_id: item.id, name: item.name, price: item.price, quantity: item.quantity,
+            options: { payment_plan: paymentPlan, charged_price: item.chargedPrice ?? item.price, balance_due: item.isApparel ? Math.max(0, item.price - (item.chargedPrice ?? item.price)) * item.quantity : 0 },
           })));
           if (insertedItems.error) throw insertedItems.error;
           for (const item of items) {
@@ -74,7 +81,7 @@ export async function POST(req: Request) {
           if (session.customer_details?.email) {
             await sendEmail({
               to: session.customer_details.email, subject: "Lucent Print order confirmed",
-              html: `<h1>Thank you for your order</h1><p>Your Lucent Print order has been received.</p><p>Order reference: ${session.id}</p>`,
+              html: `<h1>Thank you for your order</h1><p>Your Lucent Print order has been received.</p>${paymentPlan === "deposit" ? `<p>Your apparel deposit was received. Remaining apparel balance: $${apparelBalanceDue.toFixed(2)}.</p>` : "<p>Your order was paid in full.</p>"}<p>Order reference: ${session.id}</p>`,
             });
           }
         }

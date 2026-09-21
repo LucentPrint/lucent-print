@@ -4,11 +4,19 @@ import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "@/components/cart-provider";
 import { checkoutMode, etsyUrl, money } from "@/lib/commerce";
+import { isApparelProduct } from "@/lib/product-sections";
 
 export default function Checkout() {
   const cart = useCart();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [paymentPlan, setPaymentPlan] = useState<"full" | "deposit">("full");
+  const apparelItems = cart.items.filter((item) => isApparelProduct(item.product));
+  const apparelSubtotal = apparelItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const nonApparelSubtotal = cart.subtotal - apparelSubtotal;
+  const apparelDeposit = apparelItems.reduce((sum, item) => sum + Math.round(item.product.price * 50) / 100 * item.quantity, 0);
+  const amountDueNow = paymentPlan === "deposit" ? nonApparelSubtotal + apparelDeposit + cart.shipping : cart.total;
+  const balanceDueLater = paymentPlan === "deposit" ? apparelSubtotal - apparelDeposit : 0;
 
   async function startStripeCheckout() {
     setBusy(true);
@@ -18,6 +26,7 @@ export default function Checkout() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          paymentPlan,
           items: cart.items.map((item) => ({
             id: item.product.id,
             quantity: item.quantity,
@@ -44,6 +53,19 @@ export default function Checkout() {
           <div className="glass rounded-2xl p-6">
             <h2 className="text-2xl font-black">Checkout</h2>
             <div className="mt-5 grid gap-3">
+              {apparelItems.length > 0 && checkoutMode === "stripe" && (
+                <fieldset className="grid gap-3 rounded-xl border border-white/10 p-4">
+                  <legend className="px-2 font-black">Choose how to pay</legend>
+                  <label className="input flex cursor-pointer items-start gap-3">
+                    <input type="radio" checked={paymentPlan === "full"} onChange={()=>setPaymentPlan("full")}/>
+                    <span><b>Pay the full order now</b><small className="muted block">Pay apparel, 3D products and shipping in full.</small></span>
+                  </label>
+                  <label className="input flex cursor-pointer items-start gap-3">
+                    <input type="radio" checked={paymentPlan === "deposit"} onChange={()=>setPaymentPlan("deposit")}/>
+                    <span><b>Pay the apparel deposit</b><small className="muted block">Pay 50% of apparel now, plus all 3D products and shipping.</small></span>
+                  </label>
+                </fieldset>
+              )}
               {checkoutMode === "etsy" && (
                 <a href={etsyUrl} className="btn btn-primary">Continue on Etsy</a>
               )}
@@ -53,7 +75,7 @@ export default function Checkout() {
                   onClick={startStripeCheckout}
                   className="btn btn-primary"
                 >
-                  {busy ? "Opening secure checkout..." : "Pay securely with Stripe"}
+                  {busy ? "Opening secure checkout..." : `Pay ${money(amountDueNow)} securely with Stripe`}
                 </button>
               )}
             </div>
@@ -77,7 +99,11 @@ export default function Checkout() {
           <div className="border-t border-white/10 pt-4">
             <div className="flex justify-between"><span>Subtotal</span><b>{money(cart.subtotal)}</b></div>
             <div className="flex justify-between"><span>Shipping</span><b>{cart.shipping ? money(cart.shipping) : "Free"}</b></div>
-            <div className="mt-3 flex justify-between text-xl"><b>Total</b><b>{money(cart.total)}</b></div>
+            {paymentPlan === "deposit" && apparelItems.length > 0 ? <>
+              <div className="mt-3 flex justify-between"><span>Full order total</span><b>{money(cart.total)}</b></div>
+              <div className="flex justify-between text-emerald-300"><span>Due now</span><b>{money(amountDueNow)}</b></div>
+              <div className="flex justify-between text-amber-200"><span>Apparel balance due later</span><b>{money(balanceDueLater)}</b></div>
+            </> : <div className="mt-3 flex justify-between text-xl"><b>Total</b><b>{money(cart.total)}</b></div>}
           </div>
           {!cart.items.length && <Link href="/shop" className="btn btn-primary mt-5 w-full">Shop products</Link>}
         </aside>
