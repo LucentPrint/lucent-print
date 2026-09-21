@@ -5,11 +5,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
-  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+  const apiKey = process.env.STRIPE_API_KEY || process.env.STRIPE_SECRET_KEY;
+  if (!apiKey || !process.env.STRIPE_WEBHOOK_SECRET) {
     return NextResponse.json({ error: "Not configured" }, { status: 503 });
   }
 
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  const stripe = new Stripe(apiKey);
   const signature = (await headers()).get("stripe-signature");
   if (!signature) {
     return NextResponse.json({ error: "Missing signature" }, { status: 400 });
@@ -22,8 +23,14 @@ export async function POST(req: Request) {
       process.env.STRIPE_WEBHOOK_SECRET,
     );
 
-    if (event.type === "checkout.session.completed") {
+    if (
+      event.type === "checkout.session.completed" ||
+      event.type === "checkout.session.async_payment_succeeded"
+    ) {
       const session = event.data.object as Stripe.Checkout.Session;
+      if (session.payment_status === "unpaid") {
+        return NextResponse.json({ received: true, type: event.type, fulfilled: false });
+      }
       const supabase = createAdminClient();
 
       if (supabase) {
@@ -45,16 +52,19 @@ export async function POST(req: Request) {
             total: (session.amount_total || 0) / 100,
             shipping_address: session.customer_details?.address || {}, updated_at: new Date().toISOString(),
           }).select("id").single();
+          if (created.error) throw created.error;
           order = created.data;
           createdNow = Boolean(order?.id);
         }
 
         if (createdNow && order?.id && items.length) {
-          await supabase.from("order_items").insert(items.map((item) => ({
+          const insertedItems = await supabase.from("order_items").insert(items.map((item) => ({
             order_id: order!.id, product_id: item.id, name: item.name, price: item.price, quantity: item.quantity,
           })));
+          if (insertedItems.error) throw insertedItems.error;
           for (const item of items) {
-            await supabase.rpc("adjust_inventory", { p_product_id: item.id, p_change: -item.quantity, p_reason: "Stripe sale", p_reference_id: session.id });
+            const inventoryUpdate = await supabase.rpc("adjust_inventory", { p_product_id: item.id, p_change: -item.quantity, p_reason: "Stripe sale", p_reference_id: session.id });
+            if (inventoryUpdate.error) throw inventoryUpdate.error;
           }
           if (session.client_reference_id) {
             await supabase.from("loyalty_transactions").insert({

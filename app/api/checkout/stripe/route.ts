@@ -1,1 +1,86 @@
-import{NextResponse}from"next/server";import Stripe from"stripe";import{getProducts}from"@/lib/data";import{createClient}from"@/lib/supabase/server";type CheckoutItem={id:string;quantity?:number};export async function POST(req:Request){if(!process.env.STRIPE_SECRET_KEY)return NextResponse.json({error:"Stripe is not configured."},{status:503});const stripe=new Stripe(process.env.STRIPE_SECRET_KEY);const body: {items?:CheckoutItem[]}=await req.json();const products=await getProducts();const safeItems=[] as Array<{id:string;name:string;price:number;quantity:number}>;const line_items=(body.items??[]).map((i)=>{const p=products.find(x=>x.id===i.id);if(!p||p.price<=0||p.status==="coming_soon")throw new Error("Unknown or unavailable product");const quantity=Math.max(1,Number(i.quantity||1));safeItems.push({id:p.id,name:p.name,price:p.price,quantity});return{quantity,price_data:{currency:"usd" as const,unit_amount:Math.round(p.price*100),product_data:{name:p.name,images:p.images.filter(x=>x.startsWith("http")),metadata:{product_id:p.id}}}}});if(!line_items.length)return NextResponse.json({error:"Cart is empty"},{status:400});const s=await createClient();const user=s?(await s.auth.getUser()).data.user:null;const base=process.env.NEXT_PUBLIC_SITE_URL??"http://localhost:3000";const session=await stripe.checkout.sessions.create({mode:"payment",line_items,success_url:`${base}/account?checkout=success`,cancel_url:`${base}/checkout?checkout=cancelled`,allow_promotion_codes:true,shipping_address_collection:{allowed_countries:["US"]},customer_email:user?.email??undefined,client_reference_id:user?.id,metadata:{items:JSON.stringify(safeItems).slice(0,4900)}});return NextResponse.json({url:session.url})}
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+import { z } from "zod";
+import { getProducts } from "@/lib/data";
+import { createClient } from "@/lib/supabase/server";
+
+const checkoutSchema = z.object({
+  items: z.array(z.object({
+    id: z.string().uuid(),
+    quantity: z.number().int().min(1).max(10).default(1),
+    selectedColor: z.string().trim().max(80).optional(),
+  })).min(1).max(50),
+});
+
+export async function POST(req: Request) {
+  try {
+    const apiKey = process.env.STRIPE_API_KEY || process.env.STRIPE_SECRET_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: "Stripe is not configured." }, { status: 503 });
+    }
+
+    const { items } = checkoutSchema.parse(await req.json());
+    const products = await getProducts();
+    const safeItems: Array<{
+      id: string;
+      name: string;
+      price: number;
+      quantity: number;
+      selectedColor?: string;
+    }> = [];
+
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item) => {
+      const product = products.find((candidate) => candidate.id === item.id);
+      if (!product || product.price <= 0 || product.status !== "active") {
+        throw new Error("One or more products are unavailable.");
+      }
+      if (product.inventory < item.quantity) {
+        throw new Error(`${product.name} does not have enough stock.`);
+      }
+
+      safeItems.push({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: item.quantity,
+        selectedColor: item.selectedColor,
+      });
+
+      return {
+        quantity: item.quantity,
+        price_data: {
+          currency: "usd",
+          unit_amount: Math.round(product.price * 100),
+          product_data: {
+            name: item.selectedColor ? `${product.name} - ${item.selectedColor}` : product.name,
+            images: product.images.filter((image) => image.startsWith("https://")),
+            metadata: { product_id: product.id },
+          },
+        },
+      };
+    });
+
+    const supabase = await createClient();
+    const user = supabase ? (await supabase.auth.getUser()).data.user : null;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const stripe = new Stripe(apiKey);
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      integration_identifier: "lucent_print_qmvtrazk",
+      line_items: lineItems,
+      success_url: `${siteUrl}/account?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/checkout?checkout=cancelled`,
+      allow_promotion_codes: true,
+      billing_address_collection: "auto",
+      shipping_address_collection: { allowed_countries: ["US"] },
+      customer_email: user?.email,
+      client_reference_id: user?.id,
+      metadata: { items: JSON.stringify(safeItems).slice(0, 4900) },
+    });
+
+    return NextResponse.json({ url: session.url });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Checkout is unavailable.";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}
