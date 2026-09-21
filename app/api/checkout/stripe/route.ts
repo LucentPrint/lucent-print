@@ -4,9 +4,11 @@ import { z } from "zod";
 import { getProducts } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { isApparelProduct } from "@/lib/product-sections";
+import { FAMILY_AND_FRIENDS_CODE, familyAndFriendsPrice, isBulldogsLaunchProduct, normalizePromoCode } from "@/lib/promotions";
 
 const checkoutSchema = z.object({
   paymentPlan: z.enum(["full", "deposit"]).default("full"),
+  promoCode: z.string().trim().max(40).optional(),
   items: z.array(z.object({
     id: z.string().uuid(),
     quantity: z.number().int().min(1).max(99).default(1),
@@ -21,8 +23,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Stripe is not configured." }, { status: 503 });
     }
 
-    const { items, paymentPlan } = checkoutSchema.parse(await req.json());
+    const { items, paymentPlan, promoCode } = checkoutSchema.parse(await req.json());
     const products = await getProducts();
+    const normalizedPromoCode = normalizePromoCode(promoCode);
+    if (normalizedPromoCode && normalizedPromoCode !== FAMILY_AND_FRIENDS_CODE) {
+      throw new Error("That promo code is not valid.");
+    }
     const safeItems: Array<{
       id: string;
       name: string;
@@ -31,6 +37,7 @@ export async function POST(req: Request) {
       selectedColor?: string;
       isApparel: boolean;
       chargedPrice: number;
+      catalogPrice: number;
     }> = [];
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item) => {
@@ -43,18 +50,25 @@ export async function POST(req: Request) {
       }
 
       const isApparel = isApparelProduct(product);
+      const qualifiesForFamilyPricing = normalizedPromoCode === FAMILY_AND_FRIENDS_CODE && isBulldogsLaunchProduct(product);
+      const familyPrice = qualifiesForFamilyPricing ? familyAndFriendsPrice(item.selectedColor) : null;
+      if (qualifiesForFamilyPricing && familyPrice == null) {
+        throw new Error(`Choose a valid size for ${product.name} before using LUCENTP.`);
+      }
+      const orderPrice = familyPrice ?? product.price;
       const chargedPrice = paymentPlan === "deposit" && isApparel
-        ? Math.round(product.price * 50) / 100
-        : product.price;
+        ? Math.round(orderPrice * 50) / 100
+        : orderPrice;
 
       safeItems.push({
         id: product.id,
         name: product.name,
-        price: product.price,
+        price: orderPrice,
         quantity: item.quantity,
         selectedColor: item.selectedColor,
         isApparel,
         chargedPrice,
+        catalogPrice: product.price,
       });
 
       return {
@@ -71,6 +85,10 @@ export async function POST(req: Request) {
       };
     });
 
+    if (normalizedPromoCode === FAMILY_AND_FRIENDS_CODE && !safeItems.some((item)=>item.price !== item.catalogPrice)) {
+      throw new Error("LUCENTP applies only to Bulldogs launch shirts.");
+    }
+
     const supabase = await createClient();
     const user = supabase ? (await supabase.auth.getUser()).data.user : null;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -83,6 +101,7 @@ export async function POST(req: Request) {
       charged_subtotal: chargedSubtotal.toFixed(2),
       full_order_total: (subtotal + (subtotal >= 75 ? 0 : 6.95)).toFixed(2),
       apparel_balance_due: apparelBalanceDue.toFixed(2),
+      promotion_code: normalizedPromoCode,
     };
     safeItems.forEach((item, index) => {
       metadata[`item_${index}`] = JSON.stringify(item);
@@ -100,7 +119,7 @@ export async function POST(req: Request) {
       line_items: lineItems,
       success_url: `${siteUrl}/account?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/checkout?checkout=cancelled`,
-      allow_promotion_codes: true,
+      allow_promotion_codes: false,
       billing_address_collection: "auto",
       shipping_address_collection: { allowed_countries: ["US"] },
       shipping_options: shippingOptions,
