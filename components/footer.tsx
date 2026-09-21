@@ -1,1 +1,42 @@
-import Link from"next/link";export function Footer(){return <footer className="border-t border-white/10 py-12"><div className="shell grid gap-8 md:grid-cols-4"><div><b>LUCENT PRINT</b><p className="muted">Live. Create. Inspire.</p><a className="muted mt-3 inline-block break-all hover:text-white" href="mailto:lu@lucentprintlic.com">lu@lucentprintlic.com</a></div><div><b>Shop</b><div className="mt-3 grid gap-2 muted"><Link href="/shop">Products</Link><Link href="/our-work">Our Work</Link><Link href="/subscriptions">Subscription boxes</Link><Link href="/wholesale">Wholesale</Link></div></div><div><b>Community</b><div className="mt-3 grid gap-2 muted"><Link href="/design-vault">Design Vault</Link><Link href="/print-lab">Print Lab</Link><Link href="/loyalty">Loyalty</Link><Link href="/affiliate">Affiliate</Link></div></div><div><b>Support</b><div className="mt-3 grid gap-2 muted"><a href="mailto:lu@lucentprintlic.com">Email us</a><Link href="/custom-studio">Custom shirts</Link><Link href="/account">Account</Link><Link href="/policies">Policies</Link></div></div></div></footer>}
+import Link from "next/link";
+
+export function Footer() {
+  return (
+    <footer className="border-t border-white/10 py-12">
+      <div className="shell grid gap-8 md:grid-cols-4">
+        <div>
+          <b>LUCENT PRINT</b>
+          <p className="muted">Live. Create. Inspire.</p>
+          <Link className="muted mt-3 inline-block break-all hover:text-white" href="/contact">
+            lu@lucentprintlic.com
+          </Link>
+        </div>
+        <div>
+          <b>Shop</b>
+          <div className="muted mt-3 grid gap-2">
+            <Link href="/shop">3D printing</Link>
+            <Link href="/custom-studio">Custom apparel</Link>
+            <Link href="/our-work">Our Work</Link>
+            <Link href="/wholesale">Bulk orders</Link>
+          </div>
+        </div>
+        <div>
+          <b>Explore</b>
+          <div className="muted mt-3 grid gap-2">
+            <Link href="/design-vault">Design Vault</Link>
+            <Link href="/pricing">Price comparison</Link>
+            <Link href="/loyalty">Loyalty</Link>
+          </div>
+        </div>
+        <div>
+          <b>Support</b>
+          <div className="muted mt-3 grid gap-2">
+            <Link href="/contact">Email us</Link>
+            <Link href="/account">Account</Link>
+            <Link href="/policies">Policies</Link>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}

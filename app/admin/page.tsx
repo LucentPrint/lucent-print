@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 
 const modules = [
   "Products", "Inventory", "Orders", "Custom Shirt Orders", "Collections", "Reviews", "Coupons", "Newsletter",
-  "Design Vault", "Print Lab", "Loyalty", "Etsy Listings", "Wholesale", "Affiliates", "Analytics",
+  "Design Vault", "Loyalty", "Etsy Listings", "Wholesale", "Analytics",
 ];
 
 export default async function Page() {

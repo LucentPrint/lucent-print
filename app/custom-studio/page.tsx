@@ -74,6 +74,10 @@ export default function Page() {
           <p className="eyebrow">Las Vegas · Custom apparel</p>
           <h1 className="title my-6">Your design, pressed on <span className="text-pink-500">our table.</span></h1>
           <p className="muted max-w-2xl text-lg">Heat-pressed shirts for teams, salons, family events and small businesses. Bring your own blanks or let us supply them—two shirts or two hundred, with the same care either way.</p>
+          <div className="mt-6 rounded-2xl border border-pink-400/30 bg-pink-500/10 p-5">
+            <p className="font-black text-pink-200">Sublimation-printed shirts arrive September 28, 2026.</p>
+            <p className="muted mt-1 text-sm">Vibrant, permanent full-color printing on compatible polyester garments. Pricing will be confirmed after we review your shirt and artwork.</p>
+          </div>
         </div>
         <div className="glass grid gap-4 rounded-3xl p-7 sm:grid-cols-2">
           {[["Turnaround","7–10 business days"],["Minimum","No minimum"],["Deposit","50% to start"],["Proof","Approved before pressing"]].map(([label,value])=><div key={label}><p className="eyebrow">{label}</p><b>{value}</b></div>)}
