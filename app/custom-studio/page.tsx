@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 const sizes = ["YS", "YM", "YL", "S", "M", "L", "XL", "2XL", "3XL"] as const;
 const placements = ["Front — full chest", "Front — left chest", "Full back", "Sleeve"] as const;
@@ -27,6 +27,8 @@ export default function Page() {
   const [today] = useState(() => new Date().toISOString().slice(0, 10));
   const [selectedPlacements, setSelectedPlacements] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const estimate = useMemo(() => {
     const quantity = Object.values(quantities).reduce((total, value) => total + value, 0);
@@ -45,6 +47,11 @@ export default function Page() {
 
   function togglePlacement(value: string) {
     setSelectedPlacements((current) => current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
+  }
+
+  function removeSelectedFile() {
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    setSelectedFile(null);
   }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -72,6 +79,7 @@ export default function Page() {
       setNeededBy("");
       setSelectedPlacements([]);
       setQuantities({});
+      setSelectedFile(null);
     }
   }
 
@@ -178,7 +186,25 @@ export default function Page() {
                 <select className="input" value={personalization} onChange={(event)=>setPersonalization(event.target.value)}><option value="same">Same design on every shirt</option><option value="individual">Individual names / numbers (+$4 each)</option></select>
               </div>
               <textarea name="description" className="input min-h-32" placeholder="Describe the design, wording, colors and placement details" required/>
-              <label className="grid gap-2 text-sm font-bold">Upload artwork or reference file<input name="file" type="file" className="input" accept=".pdf,.svg,.png,.jpg,.jpeg,.webp,image/*"/></label>
+              <div className="grid gap-2 text-sm font-bold">
+                <label htmlFor="artwork-file">Upload artwork or reference file</label>
+                <input
+                  ref={fileInputRef}
+                  id="artwork-file"
+                  name="file"
+                  type="file"
+                  className="input"
+                  accept=".pdf,.svg,.png,.jpg,.jpeg,.webp,image/*"
+                  onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
+                />
+                {selectedFile && (
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 p-3 font-normal">
+                    <span className="min-w-0 break-all text-sm" aria-live="polite">Selected: {selectedFile.name}</span>
+                    <button type="button" className="btn btn-secondary px-4 py-2 text-sm" onClick={removeSelectedFile}>Remove file</button>
+                  </div>
+                )}
+                <p className="muted text-xs font-normal">PDF, SVG, PNG, JPG or WebP · 10 MB maximum. You can remove or replace the file before sending.</p>
+              </div>
             </fieldset>
 
             <fieldset className="glass grid gap-4 rounded-3xl p-6">
