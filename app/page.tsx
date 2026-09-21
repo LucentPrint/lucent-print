@@ -2,15 +2,12 @@ import Link from "next/link";
 import { ArrowRight, Box, Shirt } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { getProducts } from "@/lib/data";
+import { isApparelProduct } from "@/lib/product-sections";
 
 export default async function Home() {
   const products = await getProducts();
-  const apparel = products.filter((product) =>
-    product.collection.toLowerCase().includes("apparel"),
-  );
-  const prints = products.filter(
-    (product) => !product.collection.toLowerCase().includes("apparel"),
-  );
+  const apparel = products.filter(isApparelProduct);
+  const prints = products.filter((product) => !isApparelProduct(product));
 
   return (
     <>

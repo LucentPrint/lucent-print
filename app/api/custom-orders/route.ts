@@ -29,10 +29,13 @@ export async function POST(req: Request) {
   const supply = String(form.get("shirt_supply") ?? "customer");
   const artwork = String(form.get("artwork_status") ?? "ready");
   const personalization = String(form.get("personalization") ?? "same");
+  const garment = String(form.get("garment_type") ?? "tshirt");
   const neededBy = String(form.get("needed_by") ?? "");
   const locationRate = placements.length === 1 ? 16 : 27 + Math.max(0, placements.length - 2) * 6;
   const discount = quantity >= 50 ? 0.2 : quantity >= 24 ? 0.15 : quantity >= 12 ? 0.1 : 0;
-  const lineSubtotal = quantity * (locationRate + (supply === "lucent" ? 9 : 0) + (personalization === "individual" ? 4 : 0));
+  const garmentRate = supply === "lucent" ? (garment === "hoodie" ? 22 : 9) : 0;
+  const hoodiePressRate = garment === "hoodie" ? 4 : 0;
+  const lineSubtotal = quantity * (locationRate + garmentRate + hoodiePressRate + (personalization === "individual" ? 4 : 0));
   const setup = artwork === "design" ? 25 : 0;
   const rush = neededBy && new Date(neededBy).getTime() - Date.now() < 7 * 86400000 ? 0.25 : 0;
   const estimate = Number(((lineSubtotal * (1 - discount) + setup) * (1 + rush)).toFixed(2));
@@ -55,12 +58,13 @@ export async function POST(req: Request) {
     "CUSTOM SHIRT ORDER",
     `Organization: ${String(form.get("organization") ?? "") || "—"}`,
     `Phone: ${phone}`,
-    `Garment: ${String(form.get("garment_type") ?? "T-shirt")}`,
+    `Garment: ${garment === "hoodie" ? "Hoodie" : "T-shirt"}`,
     `Shirts supplied by: ${supply === "lucent" ? "Lucent Print" : "Customer"}`,
     `Brand/style: ${String(form.get("brand") ?? "") || "—"}`,
     `Size run: ${Object.entries(sizeRun).filter(([,value])=>Number(value)>0).map(([size,value])=>`${size}: ${value}`).join(", ")}`,
     `Placements: ${placements.join(", ")}`,
     `Artwork: ${artwork === "design" ? "Design help requested" : "Print-ready artwork supplied"}`,
+    "Design iterations: 3 included; additional iterations are $5 each, per design",
     `Personalization: ${personalization === "individual" ? "Individual names/numbers" : "Same design on all shirts"}`,
     `Needed by: ${neededBy}`,
     `Fulfillment: ${String(form.get("fulfillment") ?? "Pickup — Las Vegas")}`,
@@ -75,7 +79,7 @@ export async function POST(req: Request) {
     description: details,
     dimensions: placements.join(", "),
     quantity,
-    material: `Custom apparel · ${String(form.get("garment_type") ?? "T-shirt")}`,
+    material: `Custom apparel · ${garment === "hoodie" ? "Hoodie" : "T-shirt"}`,
     colors: String(form.get("shirt_color") ?? ""),
     file_url: fileUrl,
     status: "new",

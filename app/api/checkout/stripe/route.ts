@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 const checkoutSchema = z.object({
   items: z.array(z.object({
     id: z.string().uuid(),
-    quantity: z.number().int().min(1).max(10).default(1),
+    quantity: z.number().int().min(1).max(99).default(1),
     selectedColor: z.string().trim().max(80).optional(),
   })).min(1).max(50),
 });

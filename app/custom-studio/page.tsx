@@ -21,6 +21,7 @@ export default function Page() {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [supply, setSupply] = useState("customer");
+  const [garment, setGarment] = useState("tshirt");
   const [artwork, setArtwork] = useState("ready");
   const [personalization, setPersonalization] = useState("same");
   const [neededBy, setNeededBy] = useState("");
@@ -34,16 +35,17 @@ export default function Page() {
     const quantity = Object.values(quantities).reduce((total, value) => total + value, 0);
     const locationCount = selectedPlacements.length;
     const printRate = locationCount === 0 ? 0 : locationCount === 1 ? 16 : 27 + Math.max(0, locationCount - 2) * 6;
-    const shirtRate = supply === "lucent" ? 9 : 0;
+    const garmentRate = supply === "lucent" ? (garment === "hoodie" ? 22 : 9) : 0;
+    const hoodiePressRate = garment === "hoodie" ? 4 : 0;
     const personalizationRate = personalization === "individual" ? 4 : 0;
     const discount = quantity >= 50 ? 0.2 : quantity >= 24 ? 0.15 : quantity >= 12 ? 0.1 : 0;
-    const lineSubtotal = quantity * (printRate + shirtRate + personalizationRate);
+    const lineSubtotal = quantity * (printRate + garmentRate + hoodiePressRate + personalizationRate);
     const discounted = lineSubtotal * (1 - discount);
     const setup = artwork === "design" ? 25 : 0;
     const rush = neededBy && new Date(neededBy).getTime() - new Date(today).getTime() < 7 * 86400000 ? 0.25 : 0;
     const subtotal = discounted + setup;
-    return { quantity, printRate, shirtRate, personalizationRate, discount, setup, rush, total: subtotal * (1 + rush) };
-  }, [artwork, neededBy, personalization, quantities, selectedPlacements, supply, today]);
+    return { quantity, printRate, garmentRate, hoodiePressRate, personalizationRate, discount, setup, rush, total: subtotal * (1 + rush) };
+  }, [artwork, garment, neededBy, personalization, quantities, selectedPlacements, supply, today]);
 
   function togglePlacement(value: string) {
     setSelectedPlacements((current) => current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
@@ -63,6 +65,7 @@ export default function Page() {
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
     form.set("shirt_supply", supply);
+    form.set("garment_type", garment);
     form.set("artwork_status", artwork);
     form.set("personalization", personalization);
     form.set("placements", JSON.stringify(selectedPlacements));
@@ -74,6 +77,7 @@ export default function Page() {
     if (response.ok) {
       formElement.reset();
       setSupply("customer");
+      setGarment("tshirt");
       setArtwork("ready");
       setPersonalization("same");
       setNeededBy("");
@@ -98,6 +102,7 @@ export default function Page() {
             <p className="font-black text-pink-200">Sublimation-printed shirts arrive September 28, 2026.</p>
             <p className="muted mt-1 text-sm">Vibrant, permanent full-color printing on compatible polyester garments. Pricing will be confirmed after we review your shirt and artwork.</p>
           </div>
+          <p className="muted mt-4 text-sm">Every custom apparel order includes three design iterations. Additional iterations are $5 each, per design.</p>
         </div>
         <div className="glass grid gap-4 rounded-3xl p-7 sm:grid-cols-2">
           {[["Turnaround","7–10 business days"],["Minimum","No minimum"],["Deposit","50% to start"],["Proof","Approved before pressing"]].map(([label,value])=><div key={label}><p className="eyebrow">{label}</p><b>{value}</b></div>)}
@@ -160,7 +165,7 @@ export default function Page() {
                 <label className="input flex items-center gap-3"><input type="radio" checked={supply === "lucent"} onChange={()=>setSupply("lucent")}/> Lucent Print supplies them (+$9 each)</label>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
-                <select name="garment_type" className="input"><option>T-shirt</option><option>Hoodie</option></select>
+                <select name="garment_type" className="input" value={garment} onChange={(event)=>setGarment(event.target.value)}><option value="tshirt">T-shirt</option><option value="hoodie">Hoodie (+$4 press fee; supplied blank +$22)</option></select>
                 <input name="shirt_color" className="input" placeholder="Shirt color" required/>
                 <input name="brand" className="input" placeholder="Brand / style (optional)"/>
               </div>
@@ -230,7 +235,8 @@ export default function Page() {
               <div className="flex justify-between"><span>Shirts</span><b>{estimate.quantity}</b></div>
               <div className="flex justify-between"><span>Print locations</span><b>{selectedPlacements.length}</b></div>
               {estimate.quantity > 0 && estimate.printRate > 0 && <div className="flex justify-between"><span>Printing</span><b>{money(estimate.printRate)} each</b></div>}
-              {estimate.shirtRate > 0 && <div className="flex justify-between"><span>Shirts supplied</span><b>+{money(estimate.shirtRate)} each</b></div>}
+              {estimate.garmentRate > 0 && <div className="flex justify-between"><span>{garment === "hoodie" ? "Hoodies" : "Shirts"} supplied</span><b>+{money(estimate.garmentRate)} each</b></div>}
+              {estimate.hoodiePressRate > 0 && <div className="flex justify-between"><span>Hoodie press fee</span><b>+{money(estimate.hoodiePressRate)} each</b></div>}
               {estimate.personalizationRate > 0 && <div className="flex justify-between"><span>Names / numbers</span><b>+{money(estimate.personalizationRate)} each</b></div>}
               {estimate.discount > 0 && <div className="flex justify-between text-emerald-300"><span>Volume discount</span><b>−{estimate.discount * 100}%</b></div>}
               {estimate.setup > 0 && <div className="flex justify-between"><span>Design setup</span><b>{money(estimate.setup)}</b></div>}
@@ -258,6 +264,7 @@ export default function Page() {
         ["Rush orders","Orders needed in under seven days are accepted when the schedule allows and add 25%."],
         ["Custom means final","Made-to-order pieces cannot be returned or exchanged. Check spelling and sizes carefully on the proof."],
         ["Color and placement","Screen colors can shift slightly once pressed. Placement may vary up to 1/2 inch from shirt to shirt."],
+        ["Design iterations","Three design iterations are included with each design. Additional iterations are $5 each, per design."],
         ["Artwork rights","You confirm that you own or have permission to use submitted artwork. Tell us if finished work must stay out of our portfolio."],
         ["Care","Wash inside out in cold water, no bleach, dry low, do not iron the design, and wait 24 hours before the first wash."],
         ["Pickup window","Completed orders are held for 30 days."],

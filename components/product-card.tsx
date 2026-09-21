@@ -3,6 +3,7 @@
 import { Bell, Heart, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { money } from "@/lib/commerce";
 import { getMarketComparison } from "@/lib/pricing";
 import type { Product } from "@/lib/types";
@@ -14,6 +15,7 @@ export function ProductCard({ p }: { p: Product }) {
   const wishlist = useWishlist();
   const coming = p.status === "coming_soon" || p.price <= 0;
   const comparison = getMarketComparison(p.collection);
+  const [quantity, setQuantity] = useState(1);
 
   return (
     <article className="glass card group">
@@ -38,15 +40,21 @@ export function ProductCard({ p }: { p: Product }) {
         <p className="eyebrow">{p.collection}</p>
         <h3 className="my-2 text-xl font-black">{p.name}</h3>
         <p className="muted min-h-12">{p.description}</p>
-        <div className="mt-5 flex items-center gap-3">
+        <div className="mt-5 flex flex-wrap items-center gap-3">
           <b className="text-xl">{coming ? "Coming soon" : money(p.price)}</b>
           <Link className="ml-auto text-sm text-blue-400" href={`/products/${p.slug}`}>
             Details
           </Link>
+          {!coming && (
+            <label className="flex items-center gap-2 text-sm">
+              <span>Qty</span>
+              <input aria-label={`Quantity for ${p.name}`} className="input w-20 py-2 text-center" type="number" min="1" max="99" value={quantity} onChange={(event)=>setQuantity(Math.max(1,Math.min(99,Number(event.target.value)||1)))}/>
+            </label>
+          )}
           <button
             disabled={coming}
             title={coming ? "Coming soon" : "Add to cart"}
-            onClick={() => add(p)}
+            onClick={() => add(p, undefined, quantity)}
             className="rounded-lg bg-white p-2 text-black disabled:cursor-not-allowed disabled:opacity-40"
           >
             {coming ? <Bell size={18} /> : <ShoppingBag size={18} />}

@@ -1,1 +1,1 @@
-import{getProducts}from"@/lib/data";import{ShopClient}from"./shop-client";export const metadata={title:"Shop"};export default async function Page(){return <ShopClient products={await getProducts()}/>}
+import{getProducts}from"@/lib/data";import{isApparelProduct}from"@/lib/product-sections";import{ShopClient}from"./shop-client";export const metadata={title:"3D Print Shop"};export default async function Page(){const products=(await getProducts()).filter(product=>!isApparelProduct(product));return <ShopClient products={products}/>}
