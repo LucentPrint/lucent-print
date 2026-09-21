@@ -8,7 +8,7 @@ export function getMarketComparison(collection: string): MarketComparison {
   if (collection.toLowerCase().includes("apparel")) {
     return {
       label: "Typical one-off custom shirt",
-      range: "$20–$40",
+      range: "$25–$50+",
       note: "Typical U.S. online pricing varies by garment, artwork, print locations, and quantity.",
     };
   }
