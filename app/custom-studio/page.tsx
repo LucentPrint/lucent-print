@@ -1,9 +1,17 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 const sizes = ["YS", "YM", "YL", "S", "M", "L", "XL", "2XL", "3XL"] as const;
 const placements = ["Front — full chest", "Front — left chest", "Full back", "Sleeve"] as const;
+const shirtExamples = [
+  { name: "Inspirada Bulldogs", image: "/images/our-work/inspirada-green-front.jpg", slug: "inspirada-bulldogs-custom-shirt" },
+  { name: "Bulldogs Bolt", image: "/images/our-work/bulldogs-bolt-shirt.jpg", slug: "bulldogs-bolt-custom-shirt" },
+  { name: "Exotica Scissors", image: "/images/our-work/exotica-scissors-shirt.jpg", slug: "exotica-scissors-custom-shirt" },
+  { name: "Tiger Baby Bro", image: "/images/our-work/tiger-baby-bro-shirt.jpg", slug: "tiger-baby-bro-custom-shirt" },
+] as const;
 
 function money(value: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
@@ -74,6 +82,10 @@ export default function Page() {
           <p className="eyebrow">Las Vegas · Custom apparel</p>
           <h1 className="title my-6">Your design, pressed on <span className="text-pink-500">our table.</span></h1>
           <p className="muted max-w-2xl text-lg">Heat-pressed shirts for teams, salons, family events and small businesses. Bring your own blanks or let us supply them—two shirts or two hundred, with the same care either way.</p>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <a className="btn btn-primary" href="#shirt-examples">See shirts we&apos;ve made</a>
+            <a className="btn btn-secondary" href="#order">Start an apparel order</a>
+          </div>
           <div className="mt-6 rounded-2xl border border-pink-400/30 bg-pink-500/10 p-5">
             <p className="font-black text-pink-200">Sublimation-printed shirts arrive September 28, 2026.</p>
             <p className="muted mt-1 text-sm">Vibrant, permanent full-color printing on compatible polyester garments. Pricing will be confirmed after we review your shirt and artwork.</p>
@@ -81,6 +93,36 @@ export default function Page() {
         </div>
         <div className="glass grid gap-4 rounded-3xl p-7 sm:grid-cols-2">
           {[["Turnaround","7–10 business days"],["Minimum","No minimum"],["Deposit","50% to start"],["Proof","Approved before pressing"]].map(([label,value])=><div key={label}><p className="eyebrow">{label}</p><b>{value}</b></div>)}
+        </div>
+      </div>
+    </section>
+
+    <section className="section bg-white/[.025]" id="shirt-examples">
+      <div className="shell">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="eyebrow text-pink-400">Finished custom apparel</p>
+            <h2 className="mt-2 text-4xl font-black sm:text-5xl">See shirts we&apos;ve made.</h2>
+            <p className="muted mt-3 max-w-2xl">Real Lucent Print projects for teams, businesses, and families.</p>
+          </div>
+          <Link className="btn btn-secondary" href="/our-work">View the full gallery</Link>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {shirtExamples.map((example) => (
+            <Link key={example.slug} href={`/products/${example.slug}`} className="glass group overflow-hidden rounded-2xl">
+              <div className="relative aspect-[4/5] overflow-hidden">
+                <Image src={example.image} alt={`${example.name} custom shirt`} fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 25vw" className="object-cover transition duration-500 group-hover:scale-105" />
+              </div>
+              <div className="p-5">
+                <p className="eyebrow">Custom shirt</p>
+                <h3 className="mt-2 text-lg font-black">{example.name}</h3>
+                <p className="mt-2 text-sm text-blue-300">View details →</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+        <div className="mt-8 text-center">
+          <a className="btn btn-primary" href="#order">Start your custom shirt order</a>
         </div>
       </div>
     </section>
