@@ -32,8 +32,10 @@ export function Footer() {
           <b>Support</b>
           <div className="muted mt-3 grid gap-2">
             <Link href="/contact">Email us</Link>
+            <Link href="/policies#shipping">Shipping policy</Link>
+            <Link href="/policies#refunds">Refund & return policy</Link>
             <Link href="/account">Account</Link>
-            <Link href="/policies">Policies</Link>
+            <Link href="/policies">All policies</Link>
           </div>
         </div>
       </div>
