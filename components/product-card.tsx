@@ -1,12 +1,13 @@
 "use client";
 
 import { Bell, Heart, ShoppingBag } from "lucide-react";
-import Image from "next/image";
+import { ProductImage } from "@/components/product-image";
 import Link from "next/link";
 import { useState } from "react";
 import { money } from "@/lib/commerce";
 import { getMarketComparison } from "@/lib/pricing";
 import { isApparelProduct } from "@/lib/product-sections";
+import { catalogUnitPrice } from "@/lib/custom-pricing";
 import { APPAREL_SIZES } from "@/lib/promotions";
 import type { Product } from "@/lib/types";
 import { useCart } from "./cart-provider";
@@ -24,7 +25,7 @@ export function ProductCard({ p }: { p: Product }) {
   return (
     <article className="glass card group">
       <div className="relative h-64 overflow-hidden">
-        <Image
+        <ProductImage
           src={p.images[0]}
           alt={p.name}
           fill
@@ -45,7 +46,7 @@ export function ProductCard({ p }: { p: Product }) {
         <h3 className="my-2 text-xl font-black">{p.name}</h3>
         <p className="muted min-h-12">{p.description}</p>
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <b className="text-xl">{coming ? "Coming soon" : money(p.price)}</b>
+          <b className="text-xl">{coming ? "Coming soon" : money(catalogUnitPrice(p,size,quantity))}</b>
           <Link className="ml-auto text-sm text-blue-400" href={`/products/${p.slug}`}>
             Details
           </Link>
@@ -70,7 +71,7 @@ export function ProductCard({ p }: { p: Product }) {
         {!coming && (
           <p className="mt-3 text-xs text-zinc-400">
             {comparison.label}: {comparison.range}.{" "}
-            <Link className="text-blue-400 underline" href="/pricing">See comparison</Link>
+            <Link className="text-blue-400 underline" href="/pricing">View price list</Link>
           </p>
         )}
       </div>

@@ -54,7 +54,7 @@ export default function PoliciesPage() {
             <h2 className="mt-3 text-3xl font-black">Proofs, deposits, and personalization</h2>
             <div className="muted mt-5 grid gap-4 leading-7">
               <p>Lucent Print sells custom heat-press shirts and apparel through this website. A 50% deposit may be collected at checkout to begin apparel work; any remaining balance is due before pickup or shipment.</p>
-              <p>Custom apparel includes up to three design iterations. Additional iterations are $5 each, per design. You will receive a proof for approval before pressing. Approval confirms the spelling, colors, placement, size, and design shown in the proof.</p>
+              <p>Custom apparel includes two revisions. Additional revisions are $5 each. Name, text and number personalization and supplied artwork are included. Custom design costs $15 per design; complex artwork starts at $35 and is quoted. One design fee covers an entire team or bulk order. You will receive a proof for approval before pressing. Approval confirms the spelling, colors, placement, size, and design shown in the proof.</p>
               <p>Colors may vary slightly between screens and the finished material. Customer-supplied artwork must be owned by the customer or used with permission. We may decline artwork that we reasonably believe infringes another party&apos;s rights.</p>
               <p>Personalized and custom-made items are final sale except when damaged, defective, or materially different from the approved proof.</p>
             </div>

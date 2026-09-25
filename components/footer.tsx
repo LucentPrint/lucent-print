@@ -24,7 +24,7 @@ export function Footer() {
           <b>Explore</b>
           <div className="muted mt-3 grid gap-2">
             <Link href="/design-vault">Design Vault</Link>
-            <Link href="/pricing">Price comparison</Link>
+            <Link href="/pricing">Price list</Link>
             <Link href="/loyalty">Loyalty</Link>
           </div>
         </div>

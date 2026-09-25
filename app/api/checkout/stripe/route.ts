@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getProducts } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { isApparelProduct } from "@/lib/product-sections";
+import { catalogUnitPrice, CATALOG_SHIRT_LAYOUTS, SHIRT_SIZES } from "@/lib/custom-pricing";
 import { FAMILY_AND_FRIENDS_CODE, familyAndFriendsPrice, isBulldogsLaunchProduct, normalizePromoCode } from "@/lib/promotions";
 
 const checkoutSchema = z.object({
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
       if (!product || product.price <= 0 || product.status !== "active") {
         throw new Error("One or more products are unavailable.");
       }
-      if (product.inventory < item.quantity) {
+      if (product.inventory < items.filter(other=>other.id===item.id).reduce((sum,other)=>sum+other.quantity,0)) {
         throw new Error(`${product.name} does not have enough stock.`);
       }
 
@@ -55,7 +56,10 @@ export async function POST(req: Request) {
       if (qualifiesForFamilyPricing && familyPrice == null) {
         throw new Error(`Choose a valid size for ${product.name} before using LUCENTP.`);
       }
-      const orderPrice = familyPrice ?? product.price;
+      if (CATALOG_SHIRT_LAYOUTS[product.slug] && !(SHIRT_SIZES as readonly string[]).includes(item.selectedColor ?? "")) throw new Error(`Choose a listed shirt size for ${product.name}. Other sizes require a quote.`);
+      const productQuantity = items.filter(other=>other.id===item.id).reduce((sum,other)=>sum+other.quantity,0);
+      const regularPrice = catalogUnitPrice(product, item.selectedColor, productQuantity);
+      const orderPrice = familyPrice == null ? regularPrice : Math.min(familyPrice, regularPrice);
       const chargedPrice = paymentPlan === "deposit" && isApparel
         ? Math.round(orderPrice * 50) / 100
         : orderPrice;
@@ -85,7 +89,7 @@ export async function POST(req: Request) {
       };
     });
 
-    if (normalizedPromoCode === FAMILY_AND_FRIENDS_CODE && !safeItems.some((item)=>item.price !== item.catalogPrice)) {
+    if (normalizedPromoCode === FAMILY_AND_FRIENDS_CODE && !products.some(product=>safeItems.some(item=>item.id===product.id)&&isBulldogsLaunchProduct(product))) {
       throw new Error("LUCENTP applies only to Bulldogs launch shirts.");
     }
 

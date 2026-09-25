@@ -1,3 +1,4 @@
+import { COMING_SOON_IMAGE } from "./product-images";
 import { createClient } from "./supabase/server";
 import type { Collection, DesignVaultItem, Printer, Product, Review } from "./types";
 
@@ -6,7 +7,7 @@ function strings(value: unknown): string[] {
 }
 
 function product(row: Record<string, unknown>): Product {
-  const images = strings(row.images);
+  const images = strings(row.images).map(image => image.trim()).filter(Boolean);
   return {
     id: String(row.id),
     slug: String(row.slug),
@@ -18,7 +19,7 @@ function product(row: Record<string, unknown>): Product {
     collection: typeof row.collection_name === "string" ? row.collection_name : "Lucent Print",
     material: typeof row.material === "string" ? row.material : "PLA",
     colors: strings(row.colors),
-    images: images.length ? images : ["/images/lucent-print-coming-soon.webp"],
+    images: images.length ? images : [COMING_SOON_IMAGE],
     status: (row.status as Product["status"]) ?? "draft",
     inventory: Number(row.inventory_quantity ?? 0),
     featured: Boolean(row.featured),

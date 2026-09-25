@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { customShirtEstimate, SHIRT_SIZES, PRINT_PLACEMENTS, type PrintMethod } from "@/lib/custom-pricing";
+import { isSublimationColor } from "@/lib/apparel-options";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -13,6 +15,10 @@ export async function POST(req: Request) {
   const email = String(form.get("email") ?? user?.email ?? "").trim();
   const phone = String(form.get("phone") ?? "").trim();
   const design = String(form.get("description") ?? "").trim();
+  const printMethod = String(form.get("print_method") ?? "heat-transfer");
+  if (!["heat-transfer", "sublimation"].includes(printMethod)) return NextResponse.json({ error: "Choose a valid printing method." }, { status: 400 });
+  const shirtColor = String(form.get("shirt_color") ?? "").trim();
+  if (printMethod === "sublimation" && !isSublimationColor(shirtColor)) return NextResponse.json({ error: "Choose white or one of the listed light colors for sublimation. For black or dark shirts, select heat transfer." }, { status: 400 });
   if (!name || !email || !phone || !design) return NextResponse.json({ error: "Please complete all required fields." }, { status: 400 });
 
   let sizeRun: Record<string, number>;
@@ -23,6 +29,7 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid order details." }, { status: 400 });
   }
+  if (!sizeRun || Array.isArray(sizeRun) || typeof sizeRun !== "object" || Object.entries(sizeRun).some(([size, count]) => !(SHIRT_SIZES as readonly string[]).includes(size) || !Number.isInteger(count) || count < 0 || count > 10000) || !Array.isArray(placements) || placements.some(p => !(PRINT_PLACEMENTS as readonly string[]).includes(p)) || new Set(placements).size !== placements.length) return NextResponse.json({ error: "Choose valid sizes, whole-shirt quantities and print placements." }, { status: 400 });
   const quantity = Object.values(sizeRun).reduce((total, value) => total + Math.max(0, Number(value) || 0), 0);
   if (!quantity || !placements.length) return NextResponse.json({ error: "Add a shirt quantity and print placement." }, { status: 400 });
 
@@ -31,14 +38,8 @@ export async function POST(req: Request) {
   const personalization = String(form.get("personalization") ?? "same");
   const garment = String(form.get("garment_type") ?? "tshirt");
   const neededBy = String(form.get("needed_by") ?? "");
-  const locationRate = placements.length === 1 ? 16 : 27 + Math.max(0, placements.length - 2) * 6;
-  const discount = quantity >= 50 ? 0.2 : quantity >= 24 ? 0.15 : quantity >= 12 ? 0.1 : 0;
-  const garmentRate = supply === "lucent" ? (garment === "hoodie" ? 22 : 9) : 0;
-  const hoodiePressRate = garment === "hoodie" ? 4 : 0;
-  const lineSubtotal = quantity * (locationRate + garmentRate + hoodiePressRate + (personalization === "individual" ? 4 : 0));
-  const setup = artwork === "design" ? 25 : 0;
-  const rush = neededBy && new Date(neededBy).getTime() - Date.now() < 7 * 86400000 ? 0.25 : 0;
-  const estimate = Number(((lineSubtotal * (1 - discount) + setup) * (1 + rush)).toFixed(2));
+  if (!["customer", "lucent"].includes(supply) || !["ready", "design", "complex"].includes(artwork) || !["tshirt", "hoodie"].includes(garment)) return NextResponse.json({ error: "Choose valid garment and design options." }, { status: 400 });
+  const pricing = customShirtEstimate({ method: printMethod as PrintMethod, quantities: sizeRun, placements, supply, garment, artwork });
 
   let fileUrl: string | null = null;
   const file = form.get("file");
@@ -59,12 +60,16 @@ export async function POST(req: Request) {
     `Organization: ${String(form.get("organization") ?? "") || "—"}`,
     `Phone: ${phone}`,
     `Garment: ${garment === "hoodie" ? "Hoodie" : "T-shirt"}`,
+    `Printing method: ${printMethod === "sublimation" ? "Sublimation — garment, print area and price require review" : "Normal heat transfer"}`,
+    `Shirt color: ${shirtColor}`,
     `Shirts supplied by: ${supply === "lucent" ? "Lucent Print" : "Customer"}`,
     `Brand/style: ${String(form.get("brand") ?? "") || "—"}`,
     `Size run: ${Object.entries(sizeRun).filter(([,value])=>Number(value)>0).map(([size,value])=>`${size}: ${value}`).join(", ")}`,
     `Placements: ${placements.join(", ")}`,
     `Artwork: ${artwork === "design" ? "Design help requested" : "Print-ready artwork supplied"}`,
-    "Design iterations: 3 included; additional iterations are $5 each, per design",
+    "Design revisions: first 2 included; extra revisions $5 each. One design fee per team/bulk order.",
+    `Pricing: ${pricing.total == null ? "Custom quote required" : `$${pricing.total.toFixed(2)} estimate before shipping`}`,
+    `Design service: ${artwork === "complex" ? "Complex artwork from $35, quoted" : artwork === "design" ? "Custom design $15" : "Supplied artwork included"}`,
     `Personalization: ${personalization === "individual" ? "Individual names/numbers" : "Same design on all shirts"}`,
     `Needed by: ${neededBy}`,
     `Fulfillment: ${String(form.get("fulfillment") ?? "Pickup — Las Vegas")}`,
@@ -80,10 +85,10 @@ export async function POST(req: Request) {
     dimensions: placements.join(", "),
     quantity,
     material: `Custom apparel · ${garment === "hoodie" ? "Hoodie" : "T-shirt"}`,
-    colors: String(form.get("shirt_color") ?? ""),
+    colors: shirtColor,
     file_url: fileUrl,
     status: "new",
-    estimate,
+    estimate: pricing.total,
   };
   const { error } = await supabase.from("custom_orders").insert(payload);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

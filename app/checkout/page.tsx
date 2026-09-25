@@ -15,7 +15,7 @@ export default function Checkout() {
   const [promoInput, setPromoInput] = useState("");
   const [promoCode, setPromoCode] = useState("");
   const apparelItems = cart.items.filter((item) => isApparelProduct(item.product));
-  const pricedItems = cart.items.map((item)=>({...item,unitPrice:promotionalUnitPrice(item.product,item.selectedColor,promoCode)}));
+  const pricedItems = cart.items.map((item)=>({...item,unitPrice:promotionalUnitPrice(item.product,item.selectedColor,promoCode,cart.items.filter(other=>other.product.id===item.product.id).reduce((sum,other)=>sum+other.quantity,0))}));
   const discountedSubtotal = pricedItems.reduce((sum,item)=>sum+item.unitPrice*item.quantity,0);
   const shipping = discountedSubtotal === 0 || discountedSubtotal >= 75 ? 0 : 6.95;
   const apparelSubtotal = pricedItems.filter((item)=>isApparelProduct(item.product)).reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
@@ -43,7 +43,7 @@ export default function Checkout() {
       return;
     }
     setPromoCode(code);
-    setMessage("LUCENTP applied — family-and-friends Bulldogs pricing is active.");
+    setMessage("LUCENTP applied — the lower of regular/team and family-and-friends pricing is used.");
   }
 
   async function startStripeCheckout() {
@@ -85,7 +85,7 @@ export default function Checkout() {
               <div className="rounded-xl border border-white/10 p-4">
                 <label className="font-black" htmlFor="promo-code">Family &amp; friends promo code</label>
                 <div className="mt-2 flex gap-2"><input id="promo-code" className="input" value={promoInput} onChange={(event)=>setPromoInput(event.target.value)} placeholder="Enter promo code"/><button type="button" className="btn btn-secondary" onClick={applyPromoCode}>Apply</button></div>
-                <p className="muted mt-2 text-xs">Bulldogs launch pricing with LUCENTP: infant/toddler $15, youth $20, adult S–XL $25, and 2XL+ $27.</p>
+                <p className="muted mt-2 text-xs">LUCENTP applies to Bulldogs shirts. You always receive the lower of the current price-list rate and the eligible family-and-friends rate; discounts do not stack.</p>
                 {promoCode === FAMILY_AND_FRIENDS_CODE && <p className="mt-2 text-sm text-emerald-300">LUCENTP applied</p>}
               </div>
               {apparelItems.length > 0 && checkoutMode === "stripe" && (

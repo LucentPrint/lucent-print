@@ -1,24 +1,9 @@
 import type { Product } from "./types";
+import { catalogUnitPrice, SHIRT_SIZES } from "./custom-pricing";
 
 export const FAMILY_AND_FRIENDS_CODE = "LUCENTP";
 
-export const APPAREL_SIZES = [
-  "Infant",
-  "2T",
-  "3T",
-  "4T",
-  "5T",
-  "YS",
-  "YM",
-  "YL",
-  "S",
-  "M",
-  "L",
-  "XL",
-  "2XL",
-  "3XL",
-  "4XL",
-] as const;
+export const APPAREL_SIZES = SHIRT_SIZES;
 
 export function normalizePromoCode(code?: string) {
   return code?.trim().toUpperCase() ?? "";
@@ -36,13 +21,14 @@ export function familyAndFriendsPrice(size?: string) {
   const normalized = size?.trim().toUpperCase();
   if (!normalized) return null;
   if (normalized === "INFANT" || /^[2-5]T$/.test(normalized)) return 15;
-  if (["YS", "YM", "YL"].includes(normalized)) return 20;
+  if (["YXS", "YS", "YM", "YL", "YXL"].includes(normalized)) return 20;
   if (/^[2-9]XL$/.test(normalized)) return 27;
   if (["S", "M", "L", "XL"].includes(normalized)) return 25;
   return null;
 }
 
-export function promotionalUnitPrice(product: Product, size?: string, code?: string) {
-  if (!isFamilyAndFriendsCode(code) || !isBulldogsLaunchProduct(product)) return product.price;
-  return familyAndFriendsPrice(size) ?? product.price;
+export function promotionalUnitPrice(product: Product, size?: string, code?: string, quantity = 1) {
+  const regular = catalogUnitPrice(product, size, quantity);
+  if (!isFamilyAndFriendsCode(code) || !isBulldogsLaunchProduct(product)) return regular;
+  return Math.min(regular, familyAndFriendsPrice(size) ?? regular);
 }
