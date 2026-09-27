@@ -46,6 +46,9 @@ export function Header() {
             <Shirt size={17} />
             Custom Apparel
           </Link>
+          <Link href="/tumblers" onClick={closeMenu} className="rounded-xl bg-orange-500/15 px-4 py-3 font-black text-orange-200 transition hover:bg-orange-500/25">
+            Tumblers
+          </Link>
           <Link href="/our-work" onClick={closeMenu} className="px-3 py-2">
             Our Work
           </Link>

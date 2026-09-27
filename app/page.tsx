@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight, Box, Shirt } from "lucide-react";
+import { ArrowRight, Box, Shirt, CupSoda } from "lucide-react";
+import { TumblerGrid } from "@/components/tumbler-grid";
 import { ProductCard } from "@/components/product-card";
 import { getProducts } from "@/lib/data";
 import { isApparelProduct } from "@/lib/product-sections";
@@ -15,13 +16,13 @@ export default async function Home() {
         <div className="shell text-center">
           <p className="eyebrow">Live. Create. Inspire.</p>
           <h1 className="title mx-auto my-6 max-w-5xl">
-            Two creative studios. <span className="text-pink-500">One Lucent Print.</span>
+            Made to stand out. <span className="text-pink-500">One Lucent Print.</span>
           </h1>
           <p className="muted mx-auto max-w-3xl text-lg">
             Choose what you need and go straight to the right part of our shop.
           </p>
 
-          <div className="mt-12 grid gap-6 text-left lg:grid-cols-2">
+          <div className="mt-12 grid gap-6 text-left xl:grid-cols-3">
             <Link
               href="/shop"
               className="glass group rounded-[28px] p-7 transition hover:-translate-y-1 hover:border-blue-400/60 sm:p-10"
@@ -66,6 +67,16 @@ export default async function Home() {
                 build an instant estimate.
               </p>
               <span className="btn btn-primary mt-8">Start an apparel order</span>
+            </Link>
+            <Link href="/tumblers" className="glass group rounded-[28px] p-7 transition hover:-translate-y-1 hover:border-orange-400/60 sm:p-10">
+              <div className="mb-8 flex items-center justify-between">
+                <span className="rounded-2xl bg-orange-500/15 p-4 text-orange-300"><CupSoda size={38} /></span>
+                <ArrowRight className="transition group-hover:translate-x-2" />
+              </div>
+              <p className="eyebrow text-orange-300">Seasonal designs &amp; personal touches</p>
+              <h2 className="mt-3 text-4xl font-black sm:text-5xl">Lucent Print<br />Tumblers</h2>
+              <p className="muted mt-5 max-w-xl text-lg">Explore Halloween favorites, autumn pumpkins and team-inspired drinkware. Choose a design and request your tumbler.</p>
+              <span className="btn btn-primary mt-8">Explore tumblers</span>
             </Link>
           </div>
 
@@ -123,6 +134,16 @@ export default async function Home() {
               <ProductCard key={product.id} p={product} />
             ))}
           </div>
+        </div>
+      </section>
+
+      <section id="tumblers" className="section border-y border-white/10 bg-orange-500/[.03]">
+        <div className="shell">
+          <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+            <div><p className="eyebrow text-orange-300">Tumblers</p><h2 className="mt-2 text-4xl font-black sm:text-5xl">A little personality in every sip</h2></div>
+            <Link className="btn btn-secondary gap-2" href="/tumblers">Explore tumblers <ArrowRight size={18} /></Link>
+          </div>
+          <TumblerGrid />
         </div>
       </section>
 

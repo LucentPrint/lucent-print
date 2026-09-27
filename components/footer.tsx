@@ -16,6 +16,7 @@ export function Footer() {
           <div className="muted mt-3 grid gap-2">
             <Link href="/shop">3D printing</Link>
             <Link href="/custom-studio">Custom apparel</Link>
+            <Link href="/tumblers">Tumblers</Link>
             <Link href="/our-work">Our Work</Link>
             <Link href="/wholesale">Bulk orders</Link>
           </div>
