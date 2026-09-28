@@ -54,7 +54,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           <p className="eyebrow">{product.collection}</p>
           <h1 className="title my-5">{product.name}</h1>
           <p className="text-3xl font-black">{coming ? "Coming soon" : money(product.price)}</p>
-          {!coming && apparel && <p className="muted mt-3">One-sided shirt prints are $14.99 and front-and-back shirt prints are $19.99 for every listed size. <Link className="text-blue-300 underline" href="/pricing">View price list</Link></p>}
+          {!coming && apparel && <p className="muted mt-3">One-sided shirt prints start at $14.99 and front-and-back shirt prints start at $19.99. 2XL adds $3 and 3XL adds $5. <Link className="text-blue-300 underline" href="/pricing">View price list</Link></p>}
           <p className="muted my-6 text-lg">{product.description}</p>
           <div className="grid grid-cols-2 gap-3">
             <div className="glass rounded-xl p-4"><small className="eyebrow">Material</small><b className="block">{product.material}</b></div>

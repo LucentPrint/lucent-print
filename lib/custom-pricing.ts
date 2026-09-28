@@ -34,7 +34,7 @@ export function shirtUnitPrice(method: PrintMethod, size: string, layout: PrintL
   const team: Partial<Record<PrintLayout, number>> = youth ? prices.teamYouth : prices.teamAdult;
   const base = quantity >= 12 ? team[layout] ?? standard[layout] : standard[layout];
   if (base == null) return null;
-  return base;
+  return Math.round((base + (size === "2XL" ? 3 : size === "3XL" ? 5 : 0)) * 100) / 100;
 }
 
 export function layoutForPlacements(placements: string[]): PrintLayout | null {

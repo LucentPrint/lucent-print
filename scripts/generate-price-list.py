@@ -67,11 +67,13 @@ def build(path: Path) -> None:
     ]))
     story += [table, Spacer(1, 8)]
 
-    story += [Paragraph("Shirt Pricing - All Listed Sizes", heading)]
+    story += [Paragraph("Shirt Pricing", heading)]
     shirt_table = Table([
         ["Print option", "Price"],
         ["One-sided shirt print", "$14.99"],
         ["Front-and-back shirt print", "$19.99"],
+        ["2XL size surcharge", "+$3.00"],
+        ["3XL size surcharge", "+$5.00"],
     ], colWidths=[5.85*inch, 1.1*inch])
     shirt_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2563eb")),
@@ -83,7 +85,7 @@ def build(path: Path) -> None:
         ("TOPPADDING", (0, 0), (-1, -1), 5),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
     ]))
-    story += [shirt_table, Paragraph("The same price applies to youth and adult sizes, including 2XL and 3XL. Heat-transfer and sublimation shirt orders use these rates. Hoodies and unlisted garment options are quoted separately.", body)]
+    story += [shirt_table, Paragraph("Base prices apply to youth through XL. Heat-transfer and sublimation shirt orders use these rates. Hoodies and unlisted garment options are quoted separately.", body)]
 
     story += [Paragraph("Tumblers", heading)]
     tumbler_table = Table([["Design", "Price"]] + [list(row) for row in TUMBLERS], colWidths=[5.85*inch, 1.1*inch])
