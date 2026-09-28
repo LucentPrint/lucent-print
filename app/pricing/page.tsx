@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ProductImage } from "@/components/product-image";
 import { COMING_SOON_IMAGE } from "@/lib/product-images";
-import { DRINKWARE, SHIRT_PRICES } from "@/lib/custom-pricing";
+import { DRINKWARE } from "@/lib/custom-pricing";
 import { money } from "@/lib/commerce";
 
 export const metadata = { title: "Custom Print Price List", description: "Lucent Print drinkware, sublimation and heat-transfer shirt prices, team rates and custom design fees." };
@@ -17,15 +17,8 @@ export default function PricingPage() {
       <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{DRINKWARE.map(item=><article key={item.name} className="glass overflow-hidden rounded-2xl"><div className="relative aspect-[3/2]"><ProductImage src={COMING_SOON_IMAGE} alt={item.name} fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 25vw" className="object-contain"/></div><div className="p-5"><h3 className="text-xl font-black">{item.name}</h3><p className="mt-3 text-2xl font-bold">{money(item.price)}</p><p className="muted mt-3 text-sm">{item.description}</p><p className="mt-4 text-sm text-blue-300">{item.bulkMinimum}+ pieces: {money(item.bulkPrice)} each</p><Link className="mt-4 inline-block text-pink-300 underline" href="/contact">Request a drinkware order</Link></div></article>)}</div>
     </section>
     {(["sublimation", "heat-transfer"] as const).map(method=>{
-      const p=SHIRT_PRICES[method]; const sub=method==='sublimation';
-      const rows: Array<[string,string,string?]> = [
-        ["Adult · front",money(p.adult.front),sub?"Up to 8.5 × 11 in.":"Up to 8 × 10 in."],
-        ["Adult · back only",money(p.adult.back),sub?"Full back, up to 13 × 15 in.":"Up to 8 × 10 in."],
-        ...(sub?[["Adult · large front",money(SHIRT_PRICES.sublimation.adult['large-front']),"Up to 13 × 15 in."] as [string,string,string]]:[]),
-        ["Adult · front + back",money(p.adult['front-back']),sub?"Front plus full back.":"Two prints, each up to 8 × 10 in."],
-        ["Youth · front",money(p.youth.front),"Youth XS–XL."],["Youth · back only",money(p.youth.back)], ["Youth · front + back",money(p.youth['front-back'])],
-      ];
-      return <section key={method} id={method} className="glass my-8 scroll-mt-24 rounded-3xl p-6 md:p-8"><h2 className="text-3xl font-black">{sub?'Sublimation Shirts':'Heat Transfer Shirts'}</h2><p className="muted mt-3">{sub?'Listed prices include a compatible light-color polyester or polyester-blend tee.':'Listed prices include a compatible tee in your selected color.'} Base prices apply to youth through XL and to team quantities.</p><div className="mt-6"><PriceRows rows={rows}/><p className="muted mt-3 text-sm">One-sided print: $14.99 · Front and back: $19.99 · Size surcharge: 2XL +$3 · 3XL +$5.</p></div><Link className="btn btn-primary mt-6" href="/custom-studio#order">Build a shirt order</Link></section>;
+      const sub=method==='sublimation';
+      return <section key={method} id={method} className="glass my-8 scroll-mt-24 rounded-3xl p-6 md:p-8"><h2 className="text-3xl font-black">{sub?'Sublimation Shirts':'Heat Transfer Shirts'}</h2><p className="muted mt-3">{sub?'Listed prices include a compatible light-color polyester or polyester-blend tee.':'Listed prices include a compatible tee in your selected color.'} Front-and-back printing adds $5 to the one-sided price.</p><div className="mt-6"><PriceRows rows={[["Infant, 2T–5T & Youth XS", "$12.99", "One-sided · front and back $17.99"],["Youth S–XL", "$15.99", "One-sided · front and back $20.99"],["Adult S–L", "$19.99", "One-sided · front and back $24.99"],["Adult XL", "$21.99", "One-sided · front and back $26.99"],["Adult 2XL", "$22.99", "Includes $3 larger-size charge · front and back $27.99"],["Adult 3XL", "$24.99", "Includes $5 larger-size charge · front and back $29.99"]]}/></div><Link className="btn btn-primary mt-6" href="/custom-studio#order">Build a shirt order</Link></section>;
     })}
     <section id="custom-design" className="glass scroll-mt-24 rounded-3xl p-6 md:p-8"><h2 className="text-3xl font-black">Custom Design</h2><PriceRows rows={[["Name, text or number personalization","Included"],["Your own photo, logo or finished artwork","Included"],["Custom design from your idea","$15 per design"],["Complex artwork, illustration, logo redraw or cleanup","From $35","Quoted per order."],["Extra revisions after the first 2","$5 each"]]}/><p className="muted mt-3">One design fee covers an entire team or bulk order. Every order gets a proof before printing.</p></section>
     <div className="my-8 grid gap-6 md:grid-cols-2"><div className="glass rounded-2xl p-6"><h2 className="text-xl font-bold">Pickup &amp; shipping</h2><p className="muted mt-3">Free local pickup in Las Vegas. Shipping is calculated when you order.</p></div><div className="glass rounded-2xl p-6"><h2 className="text-xl font-bold">Place an order</h2><p className="muted mt-3">Send your product, quantity, design idea and sizes.</p><Link className="mt-3 inline-block text-blue-300 underline" href="/contact">lu@lucentprintlic.com</Link></div></div>

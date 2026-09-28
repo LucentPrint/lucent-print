@@ -1,23 +1,9 @@
 import type { Product } from "./types";
 
-export const SHIRT_SIZES = ["YXS", "YS", "YM", "YL", "YXL", "S", "M", "L", "XL", "2XL", "3XL"] as const;
+export const SHIRT_SIZES = ["Infant", "2T", "3T", "4T", "5T", "YXS", "YS", "YM", "YL", "YXL", "S", "M", "L", "XL", "2XL", "3XL"] as const;
 export const PRINT_PLACEMENTS = ["Front — full chest", "Front — left chest", "Large front", "Full back", "Sleeve"] as const;
 export type PrintMethod = "heat-transfer" | "sublimation";
 export type PrintLayout = "front" | "back" | "large-front" | "front-back";
-export const SHIRT_PRICES = {
-  "heat-transfer": {
-    adult: { front: 14.99, back: 14.99, "front-back": 19.99 },
-    youth: { front: 14.99, back: 14.99, "front-back": 19.99 },
-    teamAdult: { front: 14.99, "front-back": 19.99 },
-    teamYouth: { front: 14.99, "front-back": 19.99 },
-  },
-  sublimation: {
-    adult: { front: 14.99, back: 14.99, "large-front": 14.99, "front-back": 19.99 },
-    youth: { front: 14.99, back: 14.99, "front-back": 19.99 },
-    teamAdult: { front: 14.99, "front-back": 19.99 },
-    teamYouth: { front: 14.99, "front-back": 19.99 },
-  },
-} as const;
 export const DRINKWARE = [
   { name: "20 oz Water Bottle", price: 24.99, bulkMinimum: 10, bulkPrice: 18, description: "Stainless, double-wall insulated. Full wrap. Handle lid + splash-proof lid, 2 straws, brush and gift box." },
   { name: "20 oz Skinny Tumbler", price: 19.99, bulkMinimum: 10, bulkPrice: 19.99, description: "Stainless, insulated, straight wall. Full wrap. Lid, straw and gift box." },
@@ -26,15 +12,18 @@ export const DRINKWARE = [
 ] as const;
 
 export function shirtUnitPrice(method: PrintMethod, size: string, layout: PrintLayout, quantity = 1, supply = "lucent"): number | null {
+  void quantity;
   if (!(SHIRT_SIZES as readonly string[]).includes(size)) return null;
   if (supply === "customer" && method === "sublimation") return null;
-  const youth = size.startsWith("Y");
-  const prices = SHIRT_PRICES[method];
-  const standard: Partial<Record<PrintLayout, number>> = youth ? prices.youth : prices.adult;
-  const team: Partial<Record<PrintLayout, number>> = youth ? prices.teamYouth : prices.teamAdult;
-  const base = quantity >= 12 ? team[layout] ?? standard[layout] : standard[layout];
-  if (base == null) return null;
-  return Math.round((base + (size === "2XL" ? 3 : size === "3XL" ? 5 : 0)) * 100) / 100;
+  if (method === "heat-transfer" && layout === "large-front") return null;
+  if (method === "sublimation" && layout === "large-front" && ["Infant", "2T", "3T", "4T", "5T", "YXS", "YS", "YM", "YL", "YXL"].includes(size)) return null;
+  const oneSided = ["Infant", "2T", "3T", "4T", "5T", "YXS"].includes(size) ? 12.99
+    : ["YS", "YM", "YL", "YXL"].includes(size) ? 15.99
+    : ["S", "M", "L"].includes(size) ? 19.99
+    : size === "XL" ? 21.99
+    : size === "2XL" ? 22.99
+    : 24.99;
+  return Math.round((oneSided + (layout === "front-back" ? 5 : 0)) * 100) / 100;
 }
 
 export function layoutForPlacements(placements: string[]): PrintLayout | null {
