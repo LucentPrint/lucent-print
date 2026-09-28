@@ -25,10 +25,10 @@ PRODUCTS = [
     ("Blue Puppy Carrier Clicker", "$10.99", "50"),
     ("White Puppy Carrier Clicker", "$10.99", "50"),
     ("Zombie Head Clicker", "$10.99", "50"),
-    ("Inspirada Bulldogs Custom Shirt - front and back", "From $17.99", "50"),
-    ("Bulldogs Bolt Custom Shirt - one side", "From $12.99", "50"),
-    ("Exotica Scissors Custom Shirt - one side", "From $12.99", "50"),
-    ("Tiger Baby Bro Custom Shirt - one side", "From $12.99", "50"),
+    ("Inspirada Bulldogs Custom Shirt - front and back", "From $12.49", "50"),
+    ("Bulldogs Bolt Custom Shirt - front", "From $9.99", "50"),
+    ("Exotica Scissors Custom Shirt - front", "From $9.99", "50"),
+    ("Tiger Baby Bro Custom Shirt - front", "From $9.99", "50"),
 ]
 
 TUMBLERS = [
@@ -70,12 +70,16 @@ def build(path: Path) -> None:
     story += [Paragraph("Shirt Pricing", heading)]
     shirt_table = Table([
         ["Size", "One side", "Front + back"],
-        ["Infant, 2T-5T & Youth XS", "$12.99", "$17.99"],
-        ["Youth S-XL", "$15.99", "$20.99"],
-        ["Adult S-L", "$19.99", "$24.99"],
-        ["Adult XL", "$21.99", "$26.99"],
-        ["Adult 2XL (+$3 larger-size charge)", "$22.99", "$27.99"],
-        ["Adult 3XL (+$5 larger-size charge)", "$24.99", "$29.99"],
+        ["Toddler 2T-5T", "$9.99", "$12.49"],
+        ["Youth XS", "$9.99", "$12.49"],
+        ["Youth S", "$11.49", "$13.99"],
+        ["Youth M", "$12.99", "$15.49"],
+        ["Youth L", "$14.49", "$16.99"],
+        ["Youth XL", "$15.99", "$18.49"],
+        ["Adult S-M", "$16.99", "$19.49"],
+        ["Adult L-XL", "$19.99", "$22.49"],
+        ["Adult 2XL", "$24.99", "$27.49"],
+        ["Adult 3XL", "$26.99", "$29.49"],
     ], colWidths=[4.75*inch, 1.1*inch, 1.1*inch])
     shirt_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2563eb")),
@@ -87,7 +91,7 @@ def build(path: Path) -> None:
         ("TOPPADDING", (0, 0), (-1, -1), 5),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
     ]))
-    story += [shirt_table, Paragraph("Front-and-back printing adds $5 to the one-sided price. Heat-transfer and sublimation shirt orders use these rates. Hoodies and unlisted garment options are quoted separately.", body)]
+    story += [shirt_table, Paragraph("Heat-transfer and sublimation shirt orders use these size-based rates. Hoodies and unlisted garment options are quoted separately.", body)]
 
     story += [Paragraph("Tumblers", heading)]
     tumbler_table = Table([["Design", "Price"]] + [list(row) for row in TUMBLERS], colWidths=[5.85*inch, 1.1*inch])

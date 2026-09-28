@@ -54,7 +54,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           <p className="eyebrow">{product.collection}</p>
           <h1 className="title my-5">{product.name}</h1>
           <p className="text-3xl font-black">{coming ? "Coming soon" : money(product.price)}</p>
-          {!coming && apparel && <p className="muted mt-3">One-sided shirt prints start at $12.99 for infant, toddler and Youth XS sizes. Youth S–XL is $15.99; adult S–L is $19.99; adult XL is $21.99; 2XL is $22.99; and 3XL is $24.99. Front-and-back printing adds $5. <Link className="text-blue-300 underline" href="/pricing">View price list</Link></p>}
+          {!coming && apparel && <p className="muted mt-3">Shirt prices vary by size and print coverage, starting at $9.99 for a front print and $12.49 for front-and-back printing. <Link className="text-blue-300 underline" href="/pricing">View every size and price</Link></p>}
           <p className="muted my-6 text-lg">{product.description}</p>
           <div className="grid grid-cols-2 gap-3">
             <div className="glass rounded-xl p-4"><small className="eyebrow">Material</small><b className="block">{product.material}</b></div>

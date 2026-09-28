@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       const regularPrice = catalogUnitPrice(product, item.selectedColor, productQuantity);
       const orderPrice = familyPrice == null ? regularPrice : Math.min(familyPrice, regularPrice);
       const chargedPrice = paymentPlan === "deposit" && isApparel
-        ? Math.round(orderPrice * 50) / 100
+        ? Math.round(Math.round(orderPrice * 100) / 2) / 100
         : orderPrice;
 
       safeItems.push({

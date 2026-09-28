@@ -1,6 +1,6 @@
 import type { Product } from "./types";
 
-export const SHIRT_SIZES = ["Infant", "2T", "3T", "4T", "5T", "YXS", "YS", "YM", "YL", "YXL", "S", "M", "L", "XL", "2XL", "3XL"] as const;
+export const SHIRT_SIZES = ["2T", "3T", "4T", "5T", "YXS", "YS", "YM", "YL", "YXL", "S", "M", "L", "XL", "2XL", "3XL"] as const;
 export const PRINT_PLACEMENTS = ["Front — full chest", "Front — left chest", "Large front", "Full back", "Sleeve"] as const;
 export type PrintMethod = "heat-transfer" | "sublimation";
 export type PrintLayout = "front" | "back" | "large-front" | "front-back";
@@ -16,14 +16,14 @@ export function shirtUnitPrice(method: PrintMethod, size: string, layout: PrintL
   if (!(SHIRT_SIZES as readonly string[]).includes(size)) return null;
   if (supply === "customer" && method === "sublimation") return null;
   if (method === "heat-transfer" && layout === "large-front") return null;
-  if (method === "sublimation" && layout === "large-front" && ["Infant", "2T", "3T", "4T", "5T", "YXS", "YS", "YM", "YL", "YXL"].includes(size)) return null;
-  const oneSided = ["Infant", "2T", "3T", "4T", "5T", "YXS"].includes(size) ? 12.99
-    : ["YS", "YM", "YL", "YXL"].includes(size) ? 15.99
-    : ["S", "M", "L"].includes(size) ? 19.99
-    : size === "XL" ? 21.99
-    : size === "2XL" ? 22.99
-    : 24.99;
-  return Math.round((oneSided + (layout === "front-back" ? 5 : 0)) * 100) / 100;
+  if (method === "sublimation" && layout === "large-front" && ["2T", "3T", "4T", "5T", "YXS", "YS", "YM", "YL", "YXL"].includes(size)) return null;
+  const prices: Record<string, readonly [number, number]> = {
+    "2T": [9.99, 12.49], "3T": [9.99, 12.49], "4T": [9.99, 12.49], "5T": [9.99, 12.49],
+    YXS: [9.99, 12.49], YS: [11.49, 13.99], YM: [12.99, 15.49], YL: [14.49, 16.99], YXL: [15.99, 18.49],
+    S: [16.99, 19.49], M: [16.99, 19.49], L: [19.99, 22.49], XL: [19.99, 22.49],
+    "2XL": [24.99, 27.49], "3XL": [26.99, 29.49],
+  };
+  return prices[size][layout === "front-back" ? 1 : 0];
 }
 
 export function layoutForPlacements(placements: string[]): PrintLayout | null {
