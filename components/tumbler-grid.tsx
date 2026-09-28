@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { TUMBLERS, tumblerInquiry } from "@/lib/tumblers";
+import { money } from "@/lib/commerce";
 
 export function TumblerGrid() {
   return (
@@ -12,6 +13,7 @@ export function TumblerGrid() {
           <div className="flex flex-1 flex-col p-6">
             <p className="eyebrow text-orange-300">Tumblers</p>
             <h3 className="mt-3 text-2xl font-black">{tumbler.name}</h3>
+            <p className="mt-3 text-2xl font-black text-blue-300">{money(tumbler.price)}</p>
             <p className="muted mt-3 flex-1">{tumbler.description}</p>
             <a className="btn btn-primary mt-6" href={tumblerInquiry(tumbler.name)} aria-label={`Request ${tumbler.name}`}>Request this tumbler</a>
           </div>

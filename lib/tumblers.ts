@@ -5,6 +5,7 @@ export const TUMBLERS = [
     image: "/images/tumblers/happy-halloween.png",
     description: "Orange Halloween artwork with bats, a glowing moon, jack-o’-lanterns and a spooky cemetery scene.",
     alt: "Orange Happy Halloween tumbler with bats, pumpkins and a black handle lid",
+    price: 19.99,
   },
   {
     slug: "inspirada-halloween",
@@ -12,6 +13,7 @@ export const TUMBLERS = [
     image: "/images/tumblers/inspirada-halloween.png",
     description: "A Halloween bulldog in a witch hat, paired with pumpkin artwork and bold green Inspirada Bulldogs lettering.",
     alt: "Orange and green Inspirada Bulldogs Halloween tumbler with a bulldog and pumpkin",
+    price: 19.99,
   },
   {
     slug: "autumn-pumpkin",
@@ -19,6 +21,7 @@ export const TUMBLERS = [
     image: "/images/tumblers/autumn-pumpkin.png",
     description: "Warm orange pumpkins, autumn leaves and curling vines wrap around this seasonal design.",
     alt: "Autumn pumpkin tumbler with orange pumpkins, fall leaves and a black lid",
+    price: 19.99,
   },
 ] as const;
 
