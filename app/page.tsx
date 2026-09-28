@@ -3,12 +3,13 @@ import { ArrowRight, Box, Shirt, CupSoda } from "lucide-react";
 import { TumblerGrid } from "@/components/tumbler-grid";
 import { ProductCard } from "@/components/product-card";
 import { getProducts } from "@/lib/data";
-import { isApparelProduct } from "@/lib/product-sections";
+import { isApparelProduct, isDrinkwareProduct } from "@/lib/product-sections";
 
 export default async function Home() {
   const products = await getProducts();
   const apparel = products.filter(isApparelProduct);
-  const prints = products.filter((product) => !isApparelProduct(product));
+  const drinkware = products.filter(isDrinkwareProduct);
+  const prints = products.filter((product) => !isApparelProduct(product) && !isDrinkwareProduct(product));
 
   return (
     <>
@@ -75,7 +76,7 @@ export default async function Home() {
               </div>
               <p className="eyebrow text-orange-300">Seasonal designs &amp; personal touches</p>
               <h2 className="mt-3 text-4xl font-black sm:text-5xl">Lucent Print<br />Tumblers</h2>
-              <p className="muted mt-5 max-w-xl text-lg">Explore Halloween favorites, autumn pumpkins and team-inspired drinkware. Choose a design and request your tumbler.</p>
+              <p className="muted mt-5 max-w-xl text-lg">Explore Halloween favorites, autumn pumpkins and team-inspired drinkware. Choose a design, personalize it and add it to your cart.</p>
               <span className="btn btn-primary mt-8">Explore tumblers</span>
             </Link>
           </div>
@@ -143,7 +144,7 @@ export default async function Home() {
             <div><p className="eyebrow text-orange-300">Tumblers</p><h2 className="mt-2 text-4xl font-black sm:text-5xl">A little personality in every sip</h2></div>
             <Link className="btn btn-secondary gap-2" href="/tumblers">Explore tumblers <ArrowRight size={18} /></Link>
           </div>
-          <TumblerGrid />
+          <TumblerGrid products={drinkware} />
         </div>
       </section>
 
