@@ -45,10 +45,20 @@ export async function POST(req: Request) {
 
   try {
     const stripe = new Stripe(apiKey);
-    const session = await stripe.checkout.sessions.create(
-      buildReservationCheckout(parsed.data, origin),
-      { idempotencyKey: reservationIdempotencyKey(parsed.data) },
-    );
+    const params = buildReservationCheckout(parsed.data, origin);
+    const options = { idempotencyKey: reservationIdempotencyKey(parsed.data) };
+    let session: Stripe.Checkout.Session;
+    try {
+      session = await stripe.checkout.sessions.create(params, options);
+    } catch (error) {
+      if (!(error instanceof Stripe.errors.StripeIdempotencyError)) throw error;
+      // Recover attempts opened before the statement suffix was added. Reuse the
+      // original payload and key so retries cannot create a second checkout.
+      session = await stripe.checkout.sessions.create({
+        ...params,
+        payment_intent_data: { metadata: params.metadata },
+      }, options);
+    }
     if (session.status === "expired") {
       return NextResponse.json({ code: "checkout_expired", error: "That checkout has expired. Your details are saved; select Continue to payment to open a fresh checkout." }, { status: 409 });
     }

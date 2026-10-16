@@ -51,7 +51,7 @@ export function buildReservationCheckout(input: ReservationInput, siteUrl: strin
     customer_email: input.email,
     client_reference_id: input.clientRequestId,
     metadata,
-    payment_intent_data: { metadata },
+    payment_intent_data: { metadata, statement_descriptor_suffix: "RESERVATION" },
     submit_type: "pay",
     custom_text: { submit: { message: "This $390.00 USD payment is for the Reservation Booking Service. Your requested event date still needs confirmation." } },
     success_url: `${origin}/party-planning/confirmation?session_id={CHECKOUT_SESSION_ID}`,
