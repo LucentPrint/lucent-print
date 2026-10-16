@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Copy, Mail } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 const email = "lu@lucentprintlic.com";
@@ -20,8 +21,15 @@ export default function ContactPage() {
         <p className="eyebrow">Contact Lucent Print</p>
         <h1 className="title my-6">Let&apos;s create something.</h1>
         <p className="muted mx-auto max-w-2xl text-lg">
-          Questions about 3D prints, custom apparel, bulk orders, or an existing order?
-          Email Lu and include as much detail as you can.
+          Questions about 3D prints, custom apparel, bulk orders, party planning, or reservations?
+          Email Lu and tell us what you have in mind.
+        </p>
+        <p className="muted mx-auto mt-4 max-w-2xl">
+          For party planning, include your event type, preferred date, guest count, and where
+          you&apos;d like help. You can also explore our{" "}
+          <Link href="/party-planning" className="font-bold text-pink-300 underline underline-offset-4 hover:text-pink-200">
+            Party Planning &amp; Reservations service
+          </Link>.
         </p>
 
         <div className="glass mt-10 rounded-3xl p-7 sm:p-10">
@@ -46,7 +54,9 @@ export default function ContactPage() {
               {copied ? "Copied" : "Copy address"}
             </button>
           </div>
-          <p className="muted mt-6 text-sm">We normally respond within one business day.</p>
+          <p className="muted mt-6 text-sm">
+            We normally respond within one business day. For an existing order or reservation payment, include your order or payment reference.
+          </p>
         </div>
       </div>
     </section>

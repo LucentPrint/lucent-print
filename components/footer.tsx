@@ -12,11 +12,12 @@ export function Footer() {
           </Link>
         </div>
         <div>
-          <b>Shop</b>
+          <b>Shop &amp; services</b>
           <div className="muted mt-3 grid gap-2">
             <Link href="/shop">3D printing</Link>
             <Link href="/custom-studio">Custom apparel</Link>
             <Link href="/tumblers">Tumblers</Link>
+            <Link href="/party-planning">Party Planning &amp; Reservations</Link>
             <Link href="/our-work">Our Work</Link>
             <Link href="/wholesale">Bulk orders</Link>
           </div>
