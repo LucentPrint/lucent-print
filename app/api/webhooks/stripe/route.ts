@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email";
+import { isReservationSession, reservationPaymentState } from "@/lib/reservation-checkout";
 
 export async function POST(req: Request) {
   const apiKey = process.env.STRIPE_API_KEY || process.env.STRIPE_SECRET_KEY;
@@ -28,6 +29,15 @@ export async function POST(req: Request) {
       event.type === "checkout.session.async_payment_succeeded"
     ) {
       const session = event.data.object as Stripe.Checkout.Session;
+      if (isReservationSession(session)) {
+        const paymentState = reservationPaymentState(session);
+        if (paymentState === "invalid") {
+          return NextResponse.json({ error: "Reservation checkout validation failed" }, { status: 400 });
+        }
+        // Stripe retains the event request and payment. A payment does not confirm a date,
+        // create a shipped-product order, or change inventory/loyalty balances.
+        return NextResponse.json({ received: true, type: event.type, service: "reservation-booking", payment_status: paymentState, booking_confirmed: false });
+      }
       if (session.payment_status === "unpaid") {
         return NextResponse.json({ received: true, type: event.type, fulfilled: false });
       }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 
 const modules = [
-  "Products", "Inventory", "Orders", "Custom Shirt Orders", "Collections", "Reviews", "Coupons", "Newsletter",
+  "Products", "Inventory", "Orders", "Reservations", "Custom Shirt Orders", "Collections", "Reviews", "Coupons", "Newsletter",
   "Design Vault", "Loyalty", "Etsy Listings", "Wholesale", "Analytics",
 ];
 

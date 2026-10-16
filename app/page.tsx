@@ -1,15 +1,21 @@
 import Link from "next/link";
-import { ArrowRight, Box, Shirt, CupSoda } from "lucide-react";
+import { ArrowRight, Box, Shirt, CupSoda, PartyPopper } from "lucide-react";
 import { TumblerGrid } from "@/components/tumbler-grid";
 import { ProductCard } from "@/components/product-card";
 import { getProducts } from "@/lib/data";
 import { isApparelProduct, isDrinkwareProduct } from "@/lib/product-sections";
+import { RESERVATION_CURRENCY, RESERVATION_NAME, RESERVATION_PRICE } from "@/lib/reservations";
 
 export default async function Home() {
   const products = await getProducts();
   const apparel = products.filter(isApparelProduct);
   const drinkware = products.filter(isDrinkwareProduct);
   const prints = products.filter((product) => !isApparelProduct(product) && !isDrinkwareProduct(product));
+  const reservationPrice = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: RESERVATION_CURRENCY,
+    maximumFractionDigits: 0,
+  }).format(RESERVATION_PRICE / 100);
 
   return (
     <>
@@ -20,7 +26,7 @@ export default async function Home() {
             Made to stand out. <span className="text-pink-500">One Lucent Print.</span>
           </h1>
           <p className="muted mx-auto max-w-3xl text-lg">
-            Choose what you need and go straight to the right part of our shop.
+            Find your next custom piece or start planning something worth celebrating.
           </p>
 
           <div className="mt-12 grid gap-6 text-left xl:grid-cols-3">
@@ -78,6 +84,46 @@ export default async function Home() {
               <h2 className="mt-3 text-4xl font-black sm:text-5xl">Lucent Print<br />Tumblers</h2>
               <p className="muted mt-5 max-w-xl text-lg">Explore Halloween favorites, autumn pumpkins and team-inspired drinkware. Choose a design, personalize it and add it to your cart.</p>
               <span className="btn btn-primary mt-8">Explore tumblers</span>
+            </Link>
+
+            <Link
+              href="/party-planning"
+              className="group relative overflow-hidden rounded-[28px] border border-pink-400/25 bg-linear-to-br from-blue-950/80 via-[#10131d] to-pink-950/50 p-7 transition hover:-translate-y-1 hover:border-pink-400/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pink-300 sm:p-10 xl:col-span-3"
+            >
+              <PartyPopper
+                size={240}
+                className="pointer-events-none absolute -left-12 -top-14 -rotate-12 text-blue-300/[.06]"
+                aria-hidden="true"
+              />
+              <div className="relative grid items-center gap-8 lg:grid-cols-[1fr_300px] lg:gap-12">
+                <div>
+                  <div className="mb-6 flex items-center gap-4">
+                    <span className="rounded-2xl bg-pink-500/15 p-3 text-pink-300">
+                      <PartyPopper size={30} aria-hidden="true" />
+                    </span>
+                    <p className="eyebrow text-pink-300">Let&apos;s celebrate</p>
+                  </div>
+                  <h2 className="text-4xl font-black sm:text-5xl">
+                    Party Planning <span className="text-pink-300">&amp; Reservations</span>
+                  </h2>
+                  <p className="muted mt-5 max-w-2xl text-lg">
+                    Bring us your celebration ideas, ask about party planning, or get started
+                    with our Reservation Booking Service.
+                  </p>
+                  <span className="btn btn-primary mt-7 gap-3">
+                    Plan your event
+                    <ArrowRight size={18} className="transition group-hover:translate-x-1" aria-hidden="true" />
+                  </span>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-6">
+                  <p className="text-sm font-bold text-blue-200">{RESERVATION_NAME}</p>
+                  <p className="mt-3 text-5xl font-black">{reservationPrice}</p>
+                  <p className="mt-2 text-sm text-zinc-300">One-time payment · USD</p>
+                  <p className="muted mt-5 border-t border-white/10 pt-5 text-sm leading-relaxed">
+                    Your requested date and event details still require confirmation.
+                  </p>
+                </div>
+              </div>
             </Link>
           </div>
 

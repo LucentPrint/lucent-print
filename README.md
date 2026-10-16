@@ -9,6 +9,7 @@ Production-oriented Next.js storefront with Supabase-backed commerce and busines
 3. **Business:** protected admin dashboard, product/inventory editor, orders and business schema.
 4. **Growth:** reviews API, loyalty dashboard, referrals, newsletter, analytics event capture, SEO metadata and abandoned-cart schema.
 5. **Scale:** wholesale quote requests, affiliate applications, subscription interest, custom-order studio, AI product finder and mobile roadmap.
+6. **Events:** party planning inquiries and a $390.00 USD reservation booking service with Stripe Checkout and owner request review. See [reservation setup and verification](docs/reservation-booking.md).
 
 ## Required setup
 
