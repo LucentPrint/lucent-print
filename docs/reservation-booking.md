@@ -11,6 +11,12 @@
 - `/party-planning/confirmation` retrieves the session from Stripe and checks the service marker, schema version, payment mode, amount, currency, and payment status. A query flag alone cannot display a successful payment.
 - A successful payment does **not** confirm availability or reserve a date automatically. Date confirmation remains a manual business follow-up.
 
+## Bank statement description
+
+New reservation checkouts set `payment_intent_data.statement_descriptor_suffix` to `RESERVATION`. Stripe combines this with the account's shortened statement descriptor and `* `; a shortened descriptor of `LUCENT` produces `LUCENT* RESERVATION`. The combined text must fit Stripe's 22-character limit, so use a prefix of at most 9 characters to preserve the full suffix. The account setting must be checked in Stripe; the checkout page's business name does not verify it, and banks can format statements differently.
+
+Checkout attempts created before this update keep their original descriptor. Retries preserve the existing idempotency key and recover the original session rather than creating another payment attempt. This update does not change the account-wide statement descriptor or the merchandise checkout.
+
 ## Records and access
 
 Event details are attached to both the Checkout Session and its PaymentIntent metadata. Stripe is the system of record; this feature does not create merchandise orders or write customer details to Supabase tables.
@@ -46,6 +52,8 @@ npm run build
 ```
 
 Focused tests use synthetic customer details, mocked Stripe transport, and Stripe-generated test webhook signatures. They do not call Stripe or charge a card. They cover server-owned pricing, invalid or past dates, bounded metadata, idempotency, payment-state verification, owner authorization, pagination, error handling, signed reservation webhooks, and the existing merchandise branch.
+
+The statement-description update passes **17 tests**, TypeScript, and ESLint, including reuse of pre-update open, completed, and expired Stripe attempts and controlled provider failures.
 
 Implementation checks completed: **16 tests passed**, TypeScript passed, ESLint passed, and a production build completed with Webpack. This workspace prevents Turbopack's internal worker socket and does not capture output from Next's detached TypeScript CLI process. The verification build therefore used `--webpack` and a temporary `experimental.useTypeScriptCli: false` setting, which runs the TypeScript compiler API with type checking enabled. The original Next configuration was restored afterward. No build-setting or dependency changes are part of this feature.
 

@@ -161,6 +161,8 @@ test("Stripe checkout charges exactly $390 USD once, with canonical event metada
   assert.equal(params.allow_promotion_codes, false);
   assert.deepEqual(params.automatic_tax, { enabled: false });
   assert.deepEqual(params.payment_intent_data.metadata, params.metadata);
+  assert.equal(params.payment_intent_data.statement_descriptor_suffix, "RESERVATION");
+  assert.equal(params.payment_intent_data.statement_descriptor, undefined);
   assert.equal(params.metadata.preferred_date, input.preferredDate);
   assert.equal(params.metadata.event_location, input.location);
   assert.equal(params.customer_email, input.email);
@@ -249,7 +251,7 @@ const jsonResponse = { NextResponse: { json: (body, options) => Response.json(bo
 function checkoutRoute({ environment = {}, create = async () => { throw new Error("Unexpected Stripe call"); } } = {}) {
   return loadSource("app/api/reservations/checkout/route.ts", {
     "next/server": jsonResponse,
-    stripe: class StripeMock { checkout = { sessions: { create } }; },
+    stripe: class StripeMock { static errors = Stripe.errors; checkout = { sessions: { create } }; },
   }, environment);
 }
 
@@ -272,10 +274,12 @@ test("checkout API rejects malformed, oversized, untrusted-origin, and tampered 
 test("checkout API handles missing configuration and Stripe failure without pretending payment succeeded", async () => {
   assert.equal((await checkoutRoute().POST(checkoutRequest(validInput()))).status, 503);
   assert.equal((await checkoutRoute({ environment: { NEXT_PUBLIC_SITE_URL: "invalid" } }).POST(checkoutRequest(validInput()))).status, 503);
-  const { POST } = checkoutRoute({ environment: { STRIPE_API_KEY: "sk_test_unused" }, create: async () => { throw new Error("private provider failure"); } });
+  let attempts = 0;
+  const { POST } = checkoutRoute({ environment: { STRIPE_API_KEY: "sk_test_unused" }, create: async () => { attempts += 1; throw new Error("private provider failure"); } });
   const response = await POST(checkoutRequest(validInput()));
   assert.equal(response.status, 502);
   assert.ok(!(await response.text()).includes("private provider failure"));
+  assert.equal(attempts, 1);
 });
 
 test("checkout API passes fixed server parameters and retry key, then returns only the hosted checkout URL", async () => {
@@ -293,7 +297,46 @@ test("checkout API passes fixed server parameters and retry key, then returns on
   assert.equal(response.headers.get("cache-control"), "no-store");
   assert.deepEqual(await response.json(), { url: "https://checkout.stripe.com/c/pay/cs_test_example" });
   assert.equal(received.params.line_items[0].price_data.unit_amount, 39000);
+  assert.equal(received.params.payment_intent_data.statement_descriptor_suffix, "RESERVATION");
   assert.equal(received.options.idempotencyKey, reservationIdempotencyKey(reservationSchema.parse(input)));
+});
+
+test("retries from before the statement descriptor update reuse the original Stripe attempt", async () => {
+  for (const status of ["open", "complete", "expired", "provider-failure"]) {
+    const input = reservationSchema.parse(validInput());
+    const params = buildReservationCheckout(input, "https://lucent-print.vercel.app");
+    const calls = [];
+    const session = paidSession({ status, url: status === "open" ? "https://checkout.stripe.com/c/pay/cs_test_original" : null });
+    const { POST } = checkoutRoute({
+      environment: { STRIPE_API_KEY: "sk_test_unused" },
+      create: async (received, options) => {
+        calls.push({ params: received, options });
+        if (calls.length === 1) throw new Stripe.errors.StripeIdempotencyError({ message: "Parameters do not match the original request." });
+        if (status === "provider-failure") throw new Error("Private legacy provider failure");
+        return session;
+      },
+    });
+    const response = await POST(checkoutRequest(input));
+    const body = await response.json();
+    assert.equal(calls.length, 2);
+    assert.deepEqual(calls[0].params, params);
+    assert.deepEqual(calls[1].params, { ...params, payment_intent_data: { metadata: params.metadata } });
+    assert.deepEqual(calls[1].options, calls[0].options);
+    assert.equal(calls[1].options.idempotencyKey, reservationIdempotencyKey(input));
+    if (status === "open") {
+      assert.equal(response.status, 200);
+      assert.deepEqual(body, { url: session.url });
+    } else if (status === "complete") {
+      assert.equal(response.status, 200);
+      assert.deepEqual(body, { confirmationPath: `/party-planning/confirmation?session_id=${session.id}` });
+    } else if (status === "expired") {
+      assert.equal(response.status, 409);
+      assert.equal(body.code, "checkout_expired");
+    } else {
+      assert.equal(response.status, 502);
+      assert.ok(!JSON.stringify(body).includes("Private legacy provider failure"));
+    }
+  }
 });
 
 test("checkout API distinguishes expired retries from completed attempts without leaking session details", async () => {
