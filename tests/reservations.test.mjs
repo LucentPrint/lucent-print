@@ -279,10 +279,14 @@ function checkoutRequest(body, headers = {}) {
   });
 }
 
-function addonCheckoutRoute({ environment = {}, create = async () => { throw new Error("Unexpected Stripe call"); } } = {}) {
+function addonCheckoutRoute({
+  environment = {},
+  create = async () => { throw new Error("Unexpected Stripe create call"); },
+  retrieve = async () => { throw new Error("Unexpected Stripe retrieve call"); },
+} = {}) {
   return loadSource("app/api/reservations/add-on/checkout/route.ts", {
     "next/server": jsonResponse,
-    stripe: class StripeMock { static errors = Stripe.errors; checkout = { sessions: { create } }; },
+    stripe: class StripeMock { static errors = Stripe.errors; checkout = { sessions: { create, retrieve } }; },
   }, environment);
 }
 
@@ -598,17 +602,44 @@ test("add-on API reports missing configuration and provider failures without leg
     assert.ok(!(await response.text()).includes("Private provider failure"));
     assert.equal(calls, 1);
   }
-  const missingUrl = addonCheckoutRoute({ environment: { STRIPE_API_KEY: "sk_test_unused" }, create: async () => ({ status: "open", url: null }) });
+  const created = { id: "cs_test_addon_current1234567890", status: "open", url: "https://checkout.stripe.com/c/pay/cs_test_cached" };
+  let retrievals = 0;
+  const failedRetrieval = addonCheckoutRoute({
+    environment: { STRIPE_API_KEY: "sk_test_unused" },
+    create: async () => created,
+    retrieve: async (id) => {
+      retrievals += 1;
+      assert.equal(id, created.id);
+      throw new Error("Private session retrieval failure");
+    },
+  });
+  const retrievalFailure = await failedRetrieval.POST(addonCheckoutRequest(addonInput()));
+  assert.equal(retrievalFailure.status, 502);
+  const retrievalBody = await retrievalFailure.json();
+  assert.deepEqual(Object.keys(retrievalBody), ["error"]);
+  assert.ok(!retrievalBody.error.includes("Private session retrieval failure"));
+  assert.equal(retrievals, 1);
+  const missingUrl = addonCheckoutRoute({
+    environment: { STRIPE_API_KEY: "sk_test_unused" },
+    create: async () => created,
+    retrieve: async () => ({ ...created, url: null }),
+  });
   assert.equal((await missingUrl.POST(addonCheckoutRequest(addonInput()))).status, 502);
 });
 
 test("add-on API creates a fixed $60 checkout and retries the same attempt without exposing Stripe internals", async () => {
   const calls = [];
+  const retrievals = [];
+  const created = { id: "cs_test_addon_current1234567890", url: "https://checkout.stripe.com/c/pay/cs_test_cached", status: "open" };
   const { POST } = addonCheckoutRoute({
     environment: { STRIPE_SECRET_KEY: "sk_test_unused", NEXT_PUBLIC_SITE_URL: "https://lucent-print.vercel.app/ignored" },
     create: async (params, options) => {
       calls.push({ params, options });
-      return { id: "cs_test_private", url: "https://checkout.stripe.com/c/pay/cs_test_addon", status: "open", metadata: { private_detail: "not for response" } };
+      return created;
+    },
+    retrieve: async (id) => {
+      retrievals.push(id);
+      return { ...created, url: "https://checkout.stripe.com/c/pay/cs_test_addon", metadata: { private_detail: "not for response" } };
     },
   });
   for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -618,6 +649,7 @@ test("add-on API creates a fixed $60 checkout and retries the same attempt witho
     assert.deepEqual(await response.json(), { url: "https://checkout.stripe.com/c/pay/cs_test_addon" });
   }
   assert.equal(calls.length, 2);
+  assert.deepEqual(retrievals, [created.id, created.id]);
   assert.deepEqual(calls[0], calls[1]);
   assert.equal(calls[0].params.line_items[0].price_data.unit_amount, 6000);
   assert.equal(calls[0].params.line_items[0].quantity, 1);
@@ -626,17 +658,23 @@ test("add-on API creates a fixed $60 checkout and retries the same attempt witho
   assert.equal(calls[0].options.idempotencyKey, reservationAddonIdempotencyKey(reservationAddonSchema.parse(addonInput())));
 });
 
-test("add-on API sends completed attempts to their receipt and reports expiration without creating a fresh attempt", async () => {
+test("add-on API retrieves current completed or expired status instead of trusting the cached open create response", async () => {
   for (const status of ["complete", "expired"]) {
     let calls = 0;
+    const retrievals = [];
     const session = paidAddonSession({ status, url: null, customer_details: { email: "private@example.com" } });
     const { POST } = addonCheckoutRoute({
       environment: { STRIPE_API_KEY: "sk_test_unused" },
-      create: async () => { calls += 1; return session; },
+      create: async () => {
+        calls += 1;
+        return { ...session, status: "open", payment_status: "unpaid", url: "https://checkout.stripe.com/c/pay/cs_test_cached" };
+      },
+      retrieve: async (id) => { retrievals.push(id); return session; },
     });
     const response = await POST(addonCheckoutRequest(addonInput()));
     const body = await response.json();
     assert.equal(calls, 1);
+    assert.deepEqual(retrievals, [session.id]);
     if (status === "complete") {
       assert.equal(response.status, 200);
       assert.equal(response.headers.get("cache-control"), "no-store");

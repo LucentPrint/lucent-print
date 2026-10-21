@@ -44,10 +44,13 @@ export async function POST(req: Request) {
 
   try {
     const stripe = new Stripe(apiKey);
-    const session = await stripe.checkout.sessions.create(
+    const createdSession = await stripe.checkout.sessions.create(
       buildReservationAddonCheckout(parsed.data, origin),
       { idempotencyKey: reservationAddonIdempotencyKey(parsed.data) },
     );
+    // An idempotent retry replays the original creation response. Retrieve the
+    // current state so completed or expired attempts are handled correctly.
+    const session = await stripe.checkout.sessions.retrieve(createdSession.id);
     if (session.status === "expired") {
       return NextResponse.json({ code: "checkout_expired", error: "That checkout has expired. Select Pay $60.00 again to open a fresh checkout." }, { status: 409 });
     }
