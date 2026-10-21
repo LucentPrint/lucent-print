@@ -126,7 +126,7 @@ test("deposit and balance each create one hosted $615 USD payment with the corre
     const input = deepgramCheckoutSchema.parse(checkoutInput({ part }));
     const params = buildDeepgramCheckout(input, "https://lucent-print.vercel.app/ignored?return=untrusted");
     assert.equal(params.mode, "payment");
-    assert.equal(params.ui_mode, "hosted");
+    assert.equal(params.ui_mode, undefined, "use the API's hosted-page default rather than an obsolete UI-mode enum");
     assert.deepEqual(params.payment_method_types, ["card"]);
     assert.equal(params.line_items.length, 1);
     const item = params.line_items[0];

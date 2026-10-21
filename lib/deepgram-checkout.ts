@@ -16,7 +16,8 @@ export function buildDeepgramCheckout(input: DeepgramCheckoutInput, siteUrl: str
   };
   return {
     mode: "payment",
-    ui_mode: "hosted",
+    // Use Stripe's default hosted page, matching the site's existing checkouts.
+    // The current API renamed its hosted-mode enum; no embedded UI is requested.
     payment_method_types: ["card"],
     line_items: [{
       quantity: 1,
