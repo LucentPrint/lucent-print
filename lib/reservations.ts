@@ -6,6 +6,15 @@ export const RESERVATION_CURRENCY = "usd";
 export const RESERVATION_TIME_ZONE = "America/Los_Angeles";
 export const RESERVATION_SERVICE = "reservation-booking";
 export const RESERVATION_VERSION = "1";
+export const RESERVATION_ADDON_NAME = "Reservation Booking Service Add-On";
+export const RESERVATION_ADDON_PRICE = 6000;
+export const RESERVATION_ADDON_SERVICE = "reservation-booking-addon";
+
+export const reservationAddonSchema = z.object({
+  clientRequestId: z.uuid(),
+}).strict();
+export type ReservationAddonInput = z.infer<typeof reservationAddonSchema>;
+
 export const EVENT_TYPES = [
   "Birthday", "Baby shower", "Graduation", "Corporate event", "Family celebration", "Other",
 ] as const;

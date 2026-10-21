@@ -36,7 +36,7 @@ export async function POST(req: Request) {
         }
         // Stripe retains the event request and payment. A payment does not confirm a date,
         // create a shipped-product order, or change inventory/loyalty balances.
-        return NextResponse.json({ received: true, type: event.type, service: "reservation-booking", payment_status: paymentState, booking_confirmed: false });
+        return NextResponse.json({ received: true, type: event.type, service: session.metadata?.service, payment_status: paymentState, booking_confirmed: false });
       }
       if (session.payment_status === "unpaid") {
         return NextResponse.json({ received: true, type: event.type, fulfilled: false });

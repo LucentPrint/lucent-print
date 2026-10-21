@@ -4,7 +4,8 @@ import type Stripe from "stripe";
 import {
   RESERVATION_CURRENCY, RESERVATION_NAME, RESERVATION_PRICE,
   RESERVATION_SERVICE, RESERVATION_TIME_ZONE, RESERVATION_VERSION,
-  type ReservationInput,
+  RESERVATION_ADDON_NAME, RESERVATION_ADDON_PRICE, RESERVATION_ADDON_SERVICE,
+  type ReservationInput, type ReservationAddonInput,
 } from "./reservations";
 
 export function reservationMetadata(input: ReservationInput): Record<string, string> {
@@ -64,16 +65,75 @@ export function reservationIdempotencyKey(input: ReservationInput) {
   return `reservation-v${RESERVATION_VERSION}-${digest}`;
 }
 
+export function buildReservationAddonCheckout(input: ReservationAddonInput, siteUrl: string): Stripe.Checkout.SessionCreateParams {
+  const origin = new URL(siteUrl).origin;
+  const metadata = {
+    service: RESERVATION_ADDON_SERVICE,
+    schema_version: RESERVATION_VERSION,
+    request_id: input.clientRequestId,
+    charge_type: "add-on",
+    date_confirmation: "required",
+  };
+  return {
+    mode: "payment",
+    payment_method_types: ["card"],
+    line_items: [{
+      quantity: 1,
+      price_data: {
+        currency: RESERVATION_CURRENCY,
+        unit_amount: RESERVATION_ADDON_PRICE,
+        product_data: {
+          name: RESERVATION_ADDON_NAME,
+          description: "One-time add-on payment for your reservation booking service. Event dates and details require separate confirmation.",
+          metadata: { service: RESERVATION_ADDON_SERVICE },
+        },
+      },
+    }],
+    automatic_tax: { enabled: false },
+    allow_promotion_codes: false,
+    billing_address_collection: "auto",
+    client_reference_id: input.clientRequestId,
+    metadata,
+    payment_intent_data: { metadata, statement_descriptor_suffix: "RESERVATION" },
+    custom_fields: [{
+      key: "bookingreference",
+      label: { type: "custom", custom: "Booking reference or event date" },
+      type: "text",
+      text: { maximum_length: 100 },
+      optional: true,
+    }],
+    submit_type: "pay",
+    custom_text: { submit: { message: "This is a one-time $60.00 USD reservation booking add-on. Use the email address associated with your booking. Event dates and details require separate confirmation." } },
+    success_url: `${origin}/party-planning/confirmation?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/party-planning/add-on?checkout=cancelled`,
+  };
+}
+
+export function reservationAddonIdempotencyKey(input: ReservationAddonInput) {
+  return `reservation-addon-v${RESERVATION_VERSION}-${input.clientRequestId}`;
+}
+
 type ReservationSession = Pick<Stripe.Checkout.Session, "metadata" | "mode" | "payment_status" | "currency" | "amount_total" | "status">;
+
+export function reservationServiceDetails(session: Pick<ReservationSession, "metadata">) {
+  if (session.metadata?.service === RESERVATION_SERVICE) {
+    return { name: RESERVATION_NAME, price: RESERVATION_PRICE, service: RESERVATION_SERVICE, isAddon: false };
+  }
+  if (session.metadata?.service === RESERVATION_ADDON_SERVICE) {
+    return { name: RESERVATION_ADDON_NAME, price: RESERVATION_ADDON_PRICE, service: RESERVATION_ADDON_SERVICE, isAddon: true };
+  }
+  return null;
+}
 
 // Recognize the service even if its version or amount is invalid, so it can never fall through to merchandise fulfillment.
 export function isReservationSession(session: Pick<ReservationSession, "metadata">) {
-  return session.metadata?.service === RESERVATION_SERVICE;
+  return reservationServiceDetails(session) !== null;
 }
 
 export function reservationPaymentState(session: ReservationSession): "paid" | "processing" | "incomplete" | "invalid" {
-  if (!isReservationSession(session) || session.metadata?.schema_version !== RESERVATION_VERSION ||
-    session.mode !== "payment" || session.currency !== RESERVATION_CURRENCY || session.amount_total !== RESERVATION_PRICE) {
+  const service = reservationServiceDetails(session);
+  if (!service || session.metadata?.schema_version !== RESERVATION_VERSION ||
+    session.mode !== "payment" || session.currency !== RESERVATION_CURRENCY || session.amount_total !== service.price) {
     return "invalid";
   }
   if (session.payment_status === "paid") return "paid";
