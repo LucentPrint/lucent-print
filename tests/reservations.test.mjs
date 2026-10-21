@@ -47,11 +47,14 @@ function loadSource(entry, overrides = {}, environment = process.env) {
   return load(entry);
 }
 
-const { reservationSchema, pacificDateTime } = loadSource("lib/reservations.ts");
+const { reservationSchema, reservationAddonSchema, pacificDateTime } = loadSource("lib/reservations.ts");
 const {
   buildReservationCheckout,
+  buildReservationAddonCheckout,
   reservationIdempotencyKey,
+  reservationAddonIdempotencyKey,
   reservationMetadata,
+  reservationServiceDetails,
   isReservationSession,
   reservationPaymentState,
   validCheckoutSessionId,
@@ -88,6 +91,19 @@ function paidSession(changes = {}) {
     status: "complete",
     ...changes,
   };
+}
+
+function addonInput(changes = {}) {
+  return { clientRequestId: "1583025c-a00f-4d9e-8686-cea973fd04fb", ...changes };
+}
+
+function paidAddonSession(changes = {}) {
+  return paidSession({
+    id: "cs_test_reservationaddon1234567890",
+    metadata: { service: "reservation-booking-addon", schema_version: "1" },
+    amount_total: 6000,
+    ...changes,
+  });
 }
 
 test("booking details are normalized, bounded, and require date acknowledgment", () => {
@@ -263,6 +279,25 @@ function checkoutRequest(body, headers = {}) {
   });
 }
 
+function addonCheckoutRoute({
+  environment = {},
+  create = async () => { throw new Error("Unexpected Stripe create call"); },
+  retrieve = async () => { throw new Error("Unexpected Stripe retrieve call"); },
+} = {}) {
+  return loadSource("app/api/reservations/add-on/checkout/route.ts", {
+    "next/server": jsonResponse,
+    stripe: class StripeMock { static errors = Stripe.errors; checkout = { sessions: { create, retrieve } }; },
+  }, environment);
+}
+
+function addonCheckoutRequest(body, headers = {}) {
+  return new Request("https://lucent-print.vercel.app/api/reservations/add-on/checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", origin: "https://lucent-print.vercel.app", ...headers },
+    body: typeof body === "string" ? body : JSON.stringify(body),
+  });
+}
+
 test("checkout API rejects malformed, oversized, untrusted-origin, and tampered requests before Stripe", async () => {
   const { POST } = checkoutRoute({ environment: { STRIPE_API_KEY: "sk_test_unused" } });
   assert.equal((await POST(checkoutRequest("{"))).status, 400);
@@ -428,4 +463,248 @@ test("a signed paid merchandise checkout still reaches the existing commerce bra
   assert.equal(response.status, 200);
   assert.equal(commerceCalls, 1);
   assert.deepEqual(await response.json(), { received: true, type: "checkout.session.completed" });
+});
+
+test("add-on checkout accepts only an attempt UUID and rejects client-owned payment parameters", () => {
+  assert.deepEqual(reservationAddonSchema.parse(addonInput()), addonInput());
+  for (const input of [
+    {}, { clientRequestId: "not-a-uuid" },
+    addonInput({ amount: 1 }), addonInput({ price: 1 }), addonInput({ currency: "eur" }),
+    addonInput({ quantity: 2 }), addonInput({ service: "reservation-booking" }),
+    addonInput({ success_url: "https://example.net" }), addonInput({ cancel_url: "https://example.net" }),
+    addonInput({ promotion_code: "FREE" }), addonInput({ paymentPlan: "deposit" }),
+    addonInput({ email: "someone@example.com" }), addonInput({ metadata: { schema_version: "2" } }),
+  ]) {
+    assert.equal(reservationAddonSchema.safeParse(input).success, false, JSON.stringify(input));
+  }
+});
+
+test("add-on checkout charges exactly $60 USD once and collects the optional booking reference in Stripe", () => {
+  const input = reservationAddonSchema.parse(addonInput());
+  const params = buildReservationAddonCheckout(input, "https://lucent-print.vercel.app/a-path?ignored=true");
+  assert.equal(params.mode, "payment");
+  assert.deepEqual(params.payment_method_types, ["card"]);
+  assert.equal(params.line_items.length, 1);
+  assert.equal(params.line_items[0].quantity, 1);
+  assert.equal(params.line_items[0].price_data.unit_amount, 6000);
+  assert.equal(params.line_items[0].price_data.currency, "usd");
+  assert.equal(params.line_items[0].price_data.product_data.name, "Reservation Booking Service Add-On");
+  assert.equal(params.line_items[0].price_data.product_data.metadata.service, "reservation-booking-addon");
+  assert.equal(params.line_items[0].price_data.recurring, undefined);
+  assert.equal(params.subscription_data, undefined);
+  assert.equal(params.shipping_options, undefined);
+  assert.equal(params.shipping_address_collection, undefined);
+  assert.equal(params.discounts, undefined);
+  assert.equal(params.allow_promotion_codes, false);
+  assert.deepEqual(params.automatic_tax, { enabled: false });
+  assert.equal(params.customer_email, undefined);
+  assert.equal(params.client_reference_id, input.clientRequestId);
+  assert.equal(params.metadata.service, "reservation-booking-addon");
+  assert.equal(params.metadata.schema_version, "1");
+  assert.equal(params.metadata.request_id, input.clientRequestId);
+  assert.deepEqual(params.payment_intent_data.metadata, params.metadata);
+  assert.equal(params.payment_intent_data.statement_descriptor_suffix, "RESERVATION");
+  assert.equal(params.payment_intent_data.statement_descriptor, undefined);
+  assert.equal(params.custom_fields.length, 1);
+  const reference = params.custom_fields[0];
+  assert.equal(reference.key, "bookingreference");
+  assert.equal(reference.type, "text");
+  assert.equal(reference.label.type, "custom");
+  assert.equal(reference.label.custom, "Booking reference or event date");
+  assert.equal(reference.optional, true);
+  assert.equal(reference.text.maximum_length, 100);
+  assert.equal(params.success_url, "https://lucent-print.vercel.app/party-planning/confirmation?session_id={CHECKOUT_SESSION_ID}");
+  assert.equal(params.cancel_url, "https://lucent-print.vercel.app/party-planning/add-on?checkout=cancelled");
+});
+
+test("add-on retries use stable keys distinct from full reservation payments", () => {
+  const input = reservationAddonSchema.parse(addonInput());
+  const key = reservationAddonIdempotencyKey(input);
+  assert.equal(key, reservationAddonIdempotencyKey(reservationAddonSchema.parse(addonInput())));
+  assert.notEqual(key, reservationAddonIdempotencyKey(addonInput({ clientRequestId: "09c75004-5db5-4eae-8630-4c2ab3082224" })));
+  assert.notEqual(key, reservationIdempotencyKey(reservationSchema.parse(validInput())));
+  assert.ok(key.length <= 255);
+});
+
+test("reservation receipts distinguish $60 add-ons from $390 bookings and reject mismatched payments", () => {
+  const addon = paidAddonSession();
+  assert.deepEqual(reservationServiceDetails(addon), {
+    name: "Reservation Booking Service Add-On", price: 6000, service: "reservation-booking-addon", isAddon: true,
+  });
+  assert.deepEqual(reservationServiceDetails(paidSession()), {
+    name: "Reservation Booking Service", price: 39000, service: "reservation-booking", isAddon: false,
+  });
+  assert.equal(reservationServiceDetails(paidSession({ metadata: null })), null);
+  assert.equal(reservationPaymentState(addon), "paid");
+  assert.equal(reservationPaymentState(paidAddonSession({ payment_status: "unpaid", status: "complete" })), "processing");
+  assert.equal(reservationPaymentState(paidAddonSession({ payment_status: "unpaid", status: "open" })), "incomplete");
+  assert.equal(reservationPaymentState(paidAddonSession({ payment_status: "no_payment_required" })), "incomplete");
+  for (const changes of [
+    { amount_total: 39000 }, { amount_total: 60 }, { amount_total: 0 }, { amount_total: null },
+    { currency: "eur" }, { mode: "subscription" },
+    { metadata: null },
+    { metadata: { service: "reservation-booking-addon", schema_version: "2" } },
+    { metadata: { service: "reservation-booking", schema_version: "1" } },
+    { metadata: { service: "merchandise", schema_version: "1" } },
+  ]) {
+    assert.equal(reservationPaymentState(paidAddonSession(changes)), "invalid", JSON.stringify(changes));
+  }
+  assert.equal(reservationPaymentState(paidSession({ amount_total: 6000 })), "invalid");
+  assert.equal(isReservationSession(paidAddonSession({ amount_total: 1 })), true);
+  assert.equal(isReservationSession(paidAddonSession({ metadata: { service: "reservation-booking-addon", schema_version: "2" } })), true);
+  assert.equal(isReservationSession(paidSession({ metadata: { service: "merchandise" } })), false);
+});
+
+test("owner reservation history includes add-on and full-service checkouts while excluding merchandise", async () => {
+  const addon = paidAddonSession();
+  const reservation = paidSession();
+  const result = await listReservationSessions({ checkout: { sessions: { list: async () => ({
+    data: [{ id: "cs_merchandise_1", metadata: {} }, addon, reservation], has_more: false,
+  }) } } });
+  assert.deepEqual(result.sessions, [addon, reservation]);
+  assert.equal(result.scanned, 3);
+  assert.equal(result.hasMore, false);
+});
+
+test("add-on API rejects malformed, oversized, foreign-origin, and tampered requests before contacting Stripe", async () => {
+  let calls = 0;
+  const { POST } = addonCheckoutRoute({
+    environment: { STRIPE_API_KEY: "sk_test_unused" },
+    create: async () => { calls += 1; return { url: "https://checkout.stripe.com/c/pay/cs_test_unused", status: "open" }; },
+  });
+  assert.equal((await POST(addonCheckoutRequest("{"))).status, 400);
+  assert.equal((await POST(addonCheckoutRequest("x".repeat(2049)))).status, 413);
+  assert.equal((await POST(addonCheckoutRequest(addonInput(), { "content-length": "2049" }))).status, 413);
+  assert.equal((await POST(addonCheckoutRequest(addonInput(), { origin: "https://example.net" }))).status, 403);
+  for (const input of [{}, addonInput({ clientRequestId: "invalid" }), addonInput({ amount: 1 }), addonInput({ service: "reservation-booking" })]) {
+    assert.equal((await POST(addonCheckoutRequest(input))).status, 400);
+  }
+  assert.equal(calls, 0);
+});
+
+test("add-on API reports missing configuration and provider failures without legacy replay or leaking details", async () => {
+  assert.equal((await addonCheckoutRoute().POST(addonCheckoutRequest(addonInput()))).status, 503);
+  for (const site of ["invalid", "file:///tmp/not-a-website"]) {
+    const { POST } = addonCheckoutRoute({ environment: { STRIPE_API_KEY: "sk_test_unused", NEXT_PUBLIC_SITE_URL: site } });
+    assert.equal((await POST(addonCheckoutRequest(addonInput()))).status, 503);
+  }
+  for (const error of [
+    new Error("Private provider failure"),
+    new Stripe.errors.StripeIdempotencyError({ message: "Private provider failure" }),
+  ]) {
+    let calls = 0;
+    const { POST } = addonCheckoutRoute({
+      environment: { STRIPE_API_KEY: "sk_test_unused" },
+      create: async () => { calls += 1; throw error; },
+    });
+    const response = await POST(addonCheckoutRequest(addonInput()));
+    assert.equal(response.status, 502);
+    assert.ok(!(await response.text()).includes("Private provider failure"));
+    assert.equal(calls, 1);
+  }
+  const created = { id: "cs_test_addon_current1234567890", status: "open", url: "https://checkout.stripe.com/c/pay/cs_test_cached" };
+  let retrievals = 0;
+  const failedRetrieval = addonCheckoutRoute({
+    environment: { STRIPE_API_KEY: "sk_test_unused" },
+    create: async () => created,
+    retrieve: async (id) => {
+      retrievals += 1;
+      assert.equal(id, created.id);
+      throw new Error("Private session retrieval failure");
+    },
+  });
+  const retrievalFailure = await failedRetrieval.POST(addonCheckoutRequest(addonInput()));
+  assert.equal(retrievalFailure.status, 502);
+  const retrievalBody = await retrievalFailure.json();
+  assert.deepEqual(Object.keys(retrievalBody), ["error"]);
+  assert.ok(!retrievalBody.error.includes("Private session retrieval failure"));
+  assert.equal(retrievals, 1);
+  const missingUrl = addonCheckoutRoute({
+    environment: { STRIPE_API_KEY: "sk_test_unused" },
+    create: async () => created,
+    retrieve: async () => ({ ...created, url: null }),
+  });
+  assert.equal((await missingUrl.POST(addonCheckoutRequest(addonInput()))).status, 502);
+});
+
+test("add-on API creates a fixed $60 checkout and retries the same attempt without exposing Stripe internals", async () => {
+  const calls = [];
+  const retrievals = [];
+  const created = { id: "cs_test_addon_current1234567890", url: "https://checkout.stripe.com/c/pay/cs_test_cached", status: "open" };
+  const { POST } = addonCheckoutRoute({
+    environment: { STRIPE_SECRET_KEY: "sk_test_unused", NEXT_PUBLIC_SITE_URL: "https://lucent-print.vercel.app/ignored" },
+    create: async (params, options) => {
+      calls.push({ params, options });
+      return created;
+    },
+    retrieve: async (id) => {
+      retrievals.push(id);
+      return { ...created, url: "https://checkout.stripe.com/c/pay/cs_test_addon", metadata: { private_detail: "not for response" } };
+    },
+  });
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const response = await POST(addonCheckoutRequest(addonInput()));
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    assert.deepEqual(await response.json(), { url: "https://checkout.stripe.com/c/pay/cs_test_addon" });
+  }
+  assert.equal(calls.length, 2);
+  assert.deepEqual(retrievals, [created.id, created.id]);
+  assert.deepEqual(calls[0], calls[1]);
+  assert.equal(calls[0].params.line_items[0].price_data.unit_amount, 6000);
+  assert.equal(calls[0].params.line_items[0].quantity, 1);
+  assert.equal(calls[0].params.metadata.service, "reservation-booking-addon");
+  assert.equal(calls[0].params.payment_intent_data.statement_descriptor_suffix, "RESERVATION");
+  assert.equal(calls[0].options.idempotencyKey, reservationAddonIdempotencyKey(reservationAddonSchema.parse(addonInput())));
+});
+
+test("add-on API retrieves current completed or expired status instead of trusting the cached open create response", async () => {
+  for (const status of ["complete", "expired"]) {
+    let calls = 0;
+    const retrievals = [];
+    const session = paidAddonSession({ status, url: null, customer_details: { email: "private@example.com" } });
+    const { POST } = addonCheckoutRoute({
+      environment: { STRIPE_API_KEY: "sk_test_unused" },
+      create: async () => {
+        calls += 1;
+        return { ...session, status: "open", payment_status: "unpaid", url: "https://checkout.stripe.com/c/pay/cs_test_cached" };
+      },
+      retrieve: async (id) => { retrievals.push(id); return session; },
+    });
+    const response = await POST(addonCheckoutRequest(addonInput()));
+    const body = await response.json();
+    assert.equal(calls, 1);
+    assert.deepEqual(retrievals, [session.id]);
+    if (status === "complete") {
+      assert.equal(response.status, 200);
+      assert.equal(response.headers.get("cache-control"), "no-store");
+      assert.deepEqual(body, { confirmationPath: `/party-planning/confirmation?session_id=${session.id}` });
+    } else {
+      assert.equal(response.status, 409);
+      assert.equal(body.code, "checkout_expired");
+      assert.deepEqual(Object.keys(body).sort(), ["code", "error"]);
+    }
+    assert.ok(!JSON.stringify(body).includes("private@example.com"));
+  }
+});
+
+test("signed add-on webhooks validate the $60 payment and never reach merchandise fulfillment", async () => {
+  for (const eventType of ["checkout.session.completed", "checkout.session.async_payment_succeeded"]) {
+    const response = await signedWebhook(paidAddonSession(), { eventType });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.service, "reservation-booking-addon");
+    assert.equal(body.payment_status, "paid");
+    assert.equal(body.booking_confirmed, false);
+  }
+  const processing = await signedWebhook(paidAddonSession({ payment_status: "unpaid" }));
+  assert.equal(processing.status, 200);
+  assert.equal((await processing.json()).payment_status, "processing");
+  assert.equal((await signedWebhook(paidAddonSession(), { invalidSignature: true })).status, 400);
+  for (const changes of [
+    { amount_total: 39000 }, { amount_total: 0 }, { currency: "eur" }, { mode: "subscription" },
+    { metadata: { service: "reservation-booking-addon", schema_version: "2" } },
+  ]) {
+    assert.equal((await signedWebhook(paidAddonSession(changes))).status, 400, JSON.stringify(changes));
+  }
 });

@@ -3,7 +3,7 @@ import Link from "next/link";
 import Stripe from "stripe";
 import { adminEmails, getCurrentUser } from "@/lib/auth";
 import { isReservationOwner } from "@/lib/reservation-owner";
-import { listReservationSessions, reservationPaymentState, validCheckoutSessionId } from "@/lib/reservation-checkout";
+import { listReservationSessions, reservationPaymentState, reservationServiceDetails, validCheckoutSessionId } from "@/lib/reservation-checkout";
 
 export const metadata: Metadata = { title: "Reservation requests", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -36,7 +36,7 @@ export default async function ReservationsAdmin({ searchParams }: {
       <Link href="/admin" className="text-sm text-blue-300 hover:underline">← Admin dashboard</Link>
       <p className="eyebrow mt-7">Party planning &amp; reservations</p>
       <h1 className="my-6 text-4xl font-black sm:text-5xl">Reservation requests</h1>
-      <p className="muted max-w-3xl">Review event details collected with the $390.00 service checkout. Payment does not confirm a date. Contact the customer to confirm availability and arrangements.</p>
+      <p className="muted max-w-3xl">Review $390.00 reservation bookings and $60.00 add-on payments. Match add-ons using the customer’s email and optional booking reference. Payment does not confirm a date.</p>
       <p className="muted mt-3 max-w-3xl text-sm">“Checkout paid” describes the original checkout payment. Open the payment in Stripe for its current history, including any refunds or disputes.</p>
 
       {!result ? (
@@ -49,24 +49,33 @@ export default async function ReservationsAdmin({ searchParams }: {
           <div className="grid gap-6 lg:grid-cols-2">
             {result.sessions.map((session) => {
               const data = session.metadata ?? {};
+              const service = reservationServiceDetails(session);
               const state = reservationPaymentState(session);
+              const customerName = data.full_name || session.customer_details?.name;
+              const customerEmail = data.email || session.customer_details?.email || session.customer_email;
+              const bookingReference = session.custom_fields?.find((field) => field.key === "bookingreference")?.text?.value;
+              const total = typeof session.amount_total === "number" ? new Intl.NumberFormat("en-US", { style: "currency", currency: session.currency || "usd" }).format(session.amount_total / 100) : "—";
               const paymentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
               const stripeUrl = paymentId ? `https://dashboard.stripe.com/${session.livemode ? "" : "test/"}payments/${paymentId}` : undefined;
               const status = state === "paid" ? "Checkout paid" : state === "processing" ? "Payment processing" : state === "incomplete" ? "Checkout incomplete" : "Payment needs review";
               return (
                 <article key={session.id} className="glass min-w-0 rounded-2xl p-6 sm:p-8">
                   <div className="flex flex-wrap items-start justify-between gap-4">
-                    <h2 className="break-words text-2xl font-bold">{data.full_name || "Reservation request"}</h2>
+                    <h2 className="break-words text-2xl font-bold">{customerName || (service?.isAddon ? "Reservation add-on" : "Reservation request")}</h2>
                     <span className={`rounded-full px-3 py-1 text-xs font-bold ${state === "paid" ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-400/10 text-amber-300"}`}>{status}</span>
                   </div>
                   {!session.livemode && <p className="mt-2 text-sm font-bold text-amber-300">Stripe test mode</p>}
+                  <p className="mt-3 text-sm font-medium text-blue-200">{service?.name} · {total} {session.currency?.toUpperCase()}</p>
                   <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
-                    {[
-                      ["Email", data.email], ["Phone", data.phone], ["Event", data.event_type],
+                    {(service?.isAddon ? [
+                      ["Email", customerEmail], ["Booking reference / event date", bookingReference],
+                      ["Date confirmation", "Requires follow-up"],
+                    ] : [
+                      ["Email", customerEmail], ["Phone", data.phone], ["Event", data.event_type],
                       ["Guests", data.guest_count], ["Requested date", data.preferred_date],
                       ["Requested time", data.preferred_time ? `${data.preferred_time} Pacific` : ""],
                       ["Location", data.event_location], ["Date confirmation", "Requires follow-up"],
-                    ].map(([label, value]) => (
+                    ]).map(([label, value]) => (
                       <div key={label} className="min-w-0"><dt className="muted">{label}</dt><dd className="mt-1 break-words font-medium">{value || "—"}</dd></div>
                     ))}
                   </dl>

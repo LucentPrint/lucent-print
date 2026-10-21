@@ -11,6 +11,16 @@
 - `/party-planning/confirmation` retrieves the session from Stripe and checks the service marker, schema version, payment mode, amount, currency, and payment status. A query flag alone cannot display a successful payment.
 - A successful payment does **not** confirm availability or reserve a date automatically. Date confirmation remains a manual business follow-up.
 
+## $60 reservation booking add-on
+
+`/party-planning/add-on` is a shareable payment page with a **Pay $60.00** button. The main party-planning page also has a direct add-on payment button. Clicking opens a Stripe-hosted Checkout Session for exactly one **Reservation Booking Service Add-On at $60.00 USD**. Customers do not repeat the event form or sign in; Stripe collects their email and offers an optional **Booking reference or event date** field for matching the payment to their booking.
+
+`POST /api/reservations/add-on/checkout` accepts only a client-generated UUID, validates the origin and request size, and controls the product, price, quantity, currency, and redirect destinations on the server. It uses the existing Stripe credentials. The `reservation-booking-addon` metadata marker distinguishes add-ons from the $390 service. Both the Checkout Session and PaymentIntent carry that marker. The optional reference remains in the Checkout Session's `custom_fields` and is visible on the owner reservations page.
+
+The browser stores the add-on request UUID in `sessionStorage["lucent.reservation.addon.request.v1"]` so repeated clicks, cancellations, and network retries reuse one attempt. Expired attempts prompt a new explicit click. A verified paid add-on receipt clears only the add-on request, preserving any separate $390 booking draft. The common receipt verifies the appropriate service, amount, currency, mode, version, and payment state before confirming payment; the webhook handles both reservation services before merchandise fulfillment. The owner page lists both service types with their amounts and customer contact details.
+
+The add-on is a separate one-time payment. It adds no shipping, promotion, subscription, automatic tax, new refund terms, or automatic event-date confirmation. Existing $390 bookings retain their existing behavior. Merely visiting the add-on page does not create a checkout or initiate payment.
+
 ## Bank statement description
 
 New reservation checkouts set `payment_intent_data.statement_descriptor_suffix` to `RESERVATION`. Stripe combines this with the account's shortened statement descriptor and `* `; a shortened descriptor of `LUCENT` produces `LUCENT* RESERVATION`. The combined text must fit Stripe's 22-character limit, so use a prefix of at most 9 characters to preserve the full suffix. The account setting must be checked in Stripe; the checkout page's business name does not verify it, and banks can format statements differently.
@@ -54,6 +64,8 @@ npm run build
 Focused tests use synthetic customer details, mocked Stripe transport, and Stripe-generated test webhook signatures. They do not call Stripe or charge a card. They cover server-owned pricing, invalid or past dates, bounded metadata, idempotency, payment-state verification, owner authorization, pagination, error handling, signed reservation webhooks, and the existing merchandise branch.
 
 The statement-description update passes **17 tests**, TypeScript, and ESLint, including reuse of pre-update open, completed, and expired Stripe attempts and controlled provider failures.
+
+The $60 add-on update passes **27 tests**, TypeScript, and ESLint. The added coverage verifies strict add-on input, the fixed $60 USD amount, optional booking-reference collection, retry behavior, checkout failures, service-specific receipts, owner history, and signed add-on webhooks while preserving the original $390 tests.
 
 Implementation checks completed: **16 tests passed**, TypeScript passed, ESLint passed, and a production build completed with Webpack. This workspace prevents Turbopack's internal worker socket and does not capture output from Next's detached TypeScript CLI process. The verification build therefore used `--webpack` and a temporary `experimental.useTypeScriptCli: false` setting, which runs the TypeScript compiler API with type checking enabled. The original Next configuration was restored afterward. No build-setting or dependency changes are part of this feature.
 
