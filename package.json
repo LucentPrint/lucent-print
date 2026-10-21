@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test:reservations": "node tests/reservations.test.mjs"
+    "test:reservations": "node tests/reservations.test.mjs",
+    "test:deepgram": "node tests/deepgram.test.mjs"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "latest",

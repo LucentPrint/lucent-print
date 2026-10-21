@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email";
 import { isReservationSession, reservationPaymentState } from "@/lib/reservation-checkout";
+import { deepgramPaymentState, isDeepgramSession } from "@/lib/deepgram-checkout";
 
 export async function POST(req: Request) {
   const apiKey = process.env.STRIPE_API_KEY || process.env.STRIPE_SECRET_KEY;
@@ -29,6 +30,15 @@ export async function POST(req: Request) {
       event.type === "checkout.session.async_payment_succeeded"
     ) {
       const session = event.data.object as Stripe.Checkout.Session;
+      if (isDeepgramSession(session)) {
+        const paymentState = deepgramPaymentState(session);
+        if (paymentState === "invalid") {
+          return NextResponse.json({ error: "Invoice checkout validation failed" }, { status: 400 });
+        }
+        // Invoice payments are recorded by Stripe and must not create a product
+        // order or alter merchandise inventory, loyalty, or order emails.
+        return NextResponse.json({ received: true, type: event.type, service: session.metadata?.service, payment_status: paymentState });
+      }
       if (isReservationSession(session)) {
         const paymentState = reservationPaymentState(session);
         if (paymentState === "invalid") {
