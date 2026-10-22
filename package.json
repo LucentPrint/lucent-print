@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:reservations": "node tests/reservations.test.mjs",
-    "test:deepgram": "node tests/deepgram.test.mjs"
+    "test:deepgram": "node tests/deepgram.test.mjs",
+    "test:reimbursement": "node tests/reimbursement.test.mjs"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "latest",

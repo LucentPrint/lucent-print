@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email";
 import { isReservationSession, reservationPaymentState } from "@/lib/reservation-checkout";
 import { deepgramPaymentState, isDeepgramSession } from "@/lib/deepgram-checkout";
+import { isReimbursementSession, reimbursementPaymentState } from "@/lib/reimbursement-checkout";
 
 export async function POST(req: Request) {
   const apiKey = process.env.STRIPE_API_KEY || process.env.STRIPE_SECRET_KEY;
@@ -30,6 +31,15 @@ export async function POST(req: Request) {
       event.type === "checkout.session.async_payment_succeeded"
     ) {
       const session = event.data.object as Stripe.Checkout.Session;
+      if (isReimbursementSession(session)) {
+        const paymentState = reimbursementPaymentState(session);
+        if (paymentState === "invalid") {
+          return NextResponse.json({ error: "Reimbursement checkout validation failed" }, { status: 400 });
+        }
+        // Reimbursements are recorded in Stripe and do not create merchandise
+        // orders, inventory changes, loyalty points, or order emails.
+        return NextResponse.json({ received: true, type: event.type, service: session.metadata?.service, payment_status: paymentState });
+      }
       if (isDeepgramSession(session)) {
         const paymentState = deepgramPaymentState(session);
         if (paymentState === "invalid") {
