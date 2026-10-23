@@ -5,16 +5,16 @@ import { useEffect, useId, useRef, useState } from "react";
 import {
   DEEPGRAM_CURRENCY,
   DEEPGRAM_INVOICE_NUMBER,
-  DEEPGRAM_PAYMENT_AMOUNT,
+  deepgramPaymentAmount,
   type DeepgramPaymentPart,
 } from "@/lib/deepgram-invoice";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const parts: DeepgramPaymentPart[] = ["deposit", "balance"];
-const price = new Intl.NumberFormat("en-US", {
+const price = (part: DeepgramPaymentPart) => new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: DEEPGRAM_CURRENCY,
-}).format(DEEPGRAM_PAYMENT_AMOUNT / 100);
+}).format(deepgramPaymentAmount(part) / 100);
 
 function storageKey(part: DeepgramPaymentPart) {
   return `lucent.deepgram.${DEEPGRAM_INVOICE_NUMBER}.${part}.v1`;
@@ -68,7 +68,7 @@ export function DeepgramPaymentButtons() {
   }
 
   async function openCheckout(part: DeepgramPaymentPart) {
-    if (submittingRef.current) return;
+    if (part === "deposit" || submittingRef.current) return;
     submittingRef.current = true;
     setActivePart(part);
     setFeedback(null);
@@ -88,7 +88,7 @@ export function DeepgramPaymentButtons() {
       if (response.status === 409 && body.code === "checkout_expired") {
         attemptsRef.current[part] = "";
         try { window.sessionStorage.removeItem(storageKey(part)); } catch { /* The next explicit click starts a new attempt. */ }
-        setFeedback(`That checkout expired. Select Pay ${part} — ${price} again to open a fresh checkout.`);
+        setFeedback(`That checkout expired. Select Pay ${part} — ${price(part)} again to open a fresh checkout.`);
         return;
       }
 
@@ -143,19 +143,19 @@ export function DeepgramPaymentButtons() {
             <h2 className="text-xl font-bold">{part === "deposit" ? "Deposit" : "Balance"}</h2>
             <p className="muted mt-2 text-sm">One-time payment</p>
             <div className="my-6 flex flex-wrap items-baseline gap-2">
-              <p className="text-4xl font-black tracking-tight sm:text-[2.75rem]">{price}</p>
+              <p className="text-4xl font-black tracking-tight sm:text-[2.75rem]">{price(part)}</p>
               <span className="text-xs font-medium text-zinc-400">USD</span>
             </div>
             <button
               type="button"
               onClick={() => openCheckout(part)}
-              disabled={activePart !== null}
+              disabled={part === "deposit" || activePart !== null}
               aria-busy={activePart === part}
               aria-describedby={feedback ? feedbackId : undefined}
-              className={`btn min-h-14 w-full gap-2 px-3 text-sm disabled:cursor-wait disabled:opacity-65 sm:text-base ${part === "deposit" ? "btn-primary" : "btn-secondary hover:border-blue-400/40"}`}
+              className={`btn min-h-14 w-full gap-2 px-3 text-sm disabled:cursor-not-allowed disabled:opacity-65 sm:text-base ${part === "deposit" ? "btn-primary" : "btn-secondary hover:border-blue-400/40"}`}
             >
               {activePart === part ? <LoaderCircle size={18} className="shrink-0 animate-spin" aria-hidden="true" /> : <LockKeyhole size={16} className="shrink-0" aria-hidden="true" />}
-              {activePart === part ? "Opening checkout…" : `Pay ${part} — ${price}`}
+              {activePart === part ? "Opening checkout…" : part === "deposit" ? `Deposit — ${price(part)} (paid)` : `Pay balance — ${price(part)}`}
               {activePart !== part && <ArrowRight size={16} className="shrink-0" aria-hidden="true" />}
             </button>
           </div>

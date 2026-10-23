@@ -28,7 +28,7 @@ export default function DeepgramInvoicePage() {
               <span className="rounded-full border border-white/10 bg-white/[.035] px-3.5 py-2 font-mono text-xs text-zinc-300">{DEEPGRAM_INVOICE_NUMBER}</span>
             </div>
             <h1 className="mt-7 text-4xl font-black leading-tight tracking-tight sm:text-5xl">Deepgram<br className="sm:hidden" /> <span className="bg-gradient-to-r from-blue-400 to-pink-400 bg-clip-text text-transparent">centerpieces.</span></h1>
-            <p className="muted mt-4 max-w-xl leading-relaxed">Choose the payment you&apos;re making for invoice {DEEPGRAM_INVOICE_NUMBER}. Each option is a separate, one-time payment.</p>
+            <p className="muted mt-4 max-w-xl leading-relaxed">Invoice {DEEPGRAM_INVOICE_NUMBER} (Rev. 2) — $1,480.00 total, $615.00 deposit received, $865.00 balance due on receipt.</p>
             <div className="mt-5 inline-flex items-center gap-2 text-sm text-zinc-300"><Building2 size={17} className="text-blue-300" aria-hidden="true" /> Prepared for Deepgram</div>
           </div>
 

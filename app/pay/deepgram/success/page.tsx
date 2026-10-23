@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2, CircleHelp, Clock3 } from "lucide-react";
 import Stripe from "stripe";
-import { DEEPGRAM_CURRENCY, DEEPGRAM_INVOICE_NUMBER, DEEPGRAM_PAYMENT_AMOUNT, type DeepgramPaymentPart } from "@/lib/deepgram-invoice";
+import { DEEPGRAM_CURRENCY, DEEPGRAM_INVOICE_NUMBER, deepgramPaymentAmount, type DeepgramPaymentPart } from "@/lib/deepgram-invoice";
 import { deepgramPaymentState, validDeepgramSessionId } from "@/lib/deepgram-checkout";
 
 export const metadata: Metadata = {
@@ -12,8 +12,6 @@ export const metadata: Metadata = {
   referrer: "no-referrer",
 };
 export const dynamic = "force-dynamic";
-
-const amount = new Intl.NumberFormat("en-US", { style: "currency", currency: DEEPGRAM_CURRENCY }).format(DEEPGRAM_PAYMENT_AMOUNT / 100);
 
 export default async function DeepgramPaymentSuccess({ searchParams }: {
   searchParams: Promise<{ session_id?: string | string[] }>;
@@ -34,6 +32,8 @@ export default async function DeepgramPaymentSuccess({ searchParams }: {
       }
     } catch { /* Only a Stripe-verified payment may display a successful confirmation. */ }
   }
+
+  const amount = part ? new Intl.NumberFormat("en-US", { style: "currency", currency: DEEPGRAM_CURRENCY }).format(deepgramPaymentAmount(part) / 100) : null;
 
   const copy = {
     paid: {

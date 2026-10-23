@@ -1,15 +1,15 @@
-# Deepgram invoice LP-2026-1020
+# Deepgram invoice LP-2026-1020 (Rev. 2)
 
 ## Payment page
 
-The unlisted page is `/pay/deepgram`. Its browser title is **Lucent Print — Invoice LP-2026-1020.** It uses the existing Lucent Print header, logo, and styling, and provides two independent payment buttons:
+The unlisted page is `/pay/deepgram`. Its browser title is **Lucent Print — Invoice LP-2026-1020.** It uses the existing Lucent Print header, logo, and styling, and shows the $1,480.00 total, $615.00 deposit received, and $865.00 balance due on receipt:
 
 | Button | Stripe line item | Amount |
 | --- | --- | --- |
-| Pay deposit — $615.00 | Deepgram centerpieces — deposit | $615.00 USD |
-| Pay balance — $615.00 | Deepgram centerpieces — balance | $615.00 USD |
+| Deposit — $615.00 (paid), disabled | Deepgram centerpieces — deposit | $615.00 USD |
+| Pay balance — $865.00 | Deepgram centerpieces — balance | $865.00 USD |
 
-Each button opens Stripe-hosted Checkout in `payment` mode with one line item and quantity one. Neither starts a subscription. The site does not collect card details. There are no new shipping charges, discounts, automatic taxes, or paid post-payment invoice generation in this flow.
+The balance button opens Stripe-hosted Checkout in `payment` mode with one line item and quantity one. Neither starts a subscription. The site does not collect card details. There are no new shipping charges, discounts, automatic taxes, or paid post-payment invoice generation in this flow.
 
 The page and success page have `noindex`, `nofollow`, and `no-referrer` metadata. Neither appears in the sitemap or public navigation. This is an unlisted URL, not password protection: anyone who has the URL can open it.
 
@@ -44,13 +44,13 @@ A restricted server key must permit the Checkout Session create/retrieve operati
 
 ## Server-controlled payment flow
 
-`POST /api/pay/deepgram/checkout` accepts only `{ part: "deposit" | "balance", clientRequestId: UUID }`. Strict validation rejects client-supplied amounts, currency, quantity, invoice identifiers, redirect URLs, or other payment settings. The server fixes the amount at **61500 cents**, currency at **usd**, and product name from the selected permitted part. It also validates the request origin, bounds the body to 2048 bytes, and returns controlled errors without secret details.
+`POST /api/pay/deepgram/checkout` accepts only `{ part: "deposit" | "balance", clientRequestId: UUID }`. Strict validation rejects client-supplied amounts, currency, quantity, invoice identifiers, redirect URLs, or other payment settings. The server fixes the amount at **61500 cents for deposit or 86500 cents for balance**, currency at **usd**, and product name from the selected permitted part. It also validates the request origin, bounds the body to 2048 bytes, and returns controlled errors without secret details.
 
-Session and PaymentIntent metadata identify service `deepgram-centerpieces`, invoice `LP-2026-1020`, the payment part, schema version, and request ID. Independent deposit/balance attempt IDs and idempotency keys reduce accidental duplicates across repeated clicks and network retries. The browser retains an attempt after payment. The API retrieves the current Stripe Session after idempotent creation, so it can redirect completed attempts to their confirmation or ask the customer to restart an expired attempt.
+Session and PaymentIntent metadata identify service `deepgram-centerpieces`, invoice `LP-2026-1020`, the payment part, schema version `2`, and request ID. Independent deposit/balance attempt IDs and idempotency keys reduce accidental duplicates across repeated clicks and network retries. The browser retains an attempt after payment. The API retrieves the current Stripe Session after idempotent creation, so it can redirect completed attempts to their confirmation or ask the customer to restart an expired attempt.
 
-This is a one-time payment flow, not a global invoice installment lock across devices. An additional browser or a fresh attempt can create another payment; review the Stripe payment history before requesting another payment for an already-paid installment.
+The paid deposit button is disabled; the API still supports the unchanged deposit amount for verification and isolated tests. This is a one-time payment flow, not a global invoice installment lock across devices. An additional browser or a fresh attempt can create another payment; review the Stripe payment history before requesting another payment for an already-paid installment.
 
-Successful checkout returns to `/pay/deepgram/success?session_id={CHECKOUT_SESSION_ID}`. The success page retrieves the Session on the server and requires the exact invoice, service, schema version, part, payment mode, $615.00 USD total, completed status, and paid status before showing **Payment received — thank you**, the amount, and invoice number. An arbitrary success URL or another service's Session cannot claim this invoice was paid. No payer email, company details, or card information appears on the public confirmation page. Stripe cancellation returns exactly to `/pay/deepgram`.
+Successful checkout returns to `/pay/deepgram/success?session_id={CHECKOUT_SESSION_ID}`. The success page retrieves the Session on the server and requires the exact invoice, service, schema version, part, payment mode, the part-specific total ($615.00 USD deposit or $865.00 USD balance), completed status, and paid status before showing **Payment received — thank you**, the amount, and invoice number. An arbitrary success URL or another service's Session cannot claim this invoice was paid. No payer email, company details, or card information appears on the public confirmation page. Stripe cancellation returns exactly to `/pay/deepgram`.
 
 ## Webhook behavior
 
@@ -59,7 +59,7 @@ No new webhook is required for hosted Checkout, server-verified success display,
 - `checkout.session.completed`
 - `checkout.session.async_payment_succeeded`
 
-For Deepgram payments, the handler verifies payment details and acknowledges the event without creating merchandise orders, adjusting inventory, adding loyalty points, or sending apparel/order emails. Repeated notifications have no invoice fulfillment side effects. If future work must trigger production, update accounting, or persist an invoice-paid status even when the customer closes the browser, use verified webhooks and durable records for that work.
+For Deepgram payments, the handler uses the same part-specific amount verification as the success page and verifies payment details and acknowledges the event without creating merchandise orders, adjusting inventory, adding loyalty points, or sending apparel/order emails. Repeated notifications have no invoice fulfillment side effects. If future work must trigger production, update accounting, or persist an invoice-paid status even when the customer closes the browser, use verified webhooks and durable records for that work.
 
 ## Verification
 
@@ -70,4 +70,4 @@ npm run typecheck
 npm run lint
 ```
 
-The new regression suite uses synthetic data, mocked Stripe calls, and real Stripe-generated test signatures. It covers fixed amounts and product names for both parts, input tampering, required company/email collection, retry behavior and expired/completed Sessions, malformed and oversized requests, provider failures, verified success states, and isolation from merchandise fulfillment. It never charges a card or sends an email.
+The new regression suite uses synthetic data, mocked Stripe calls, and real Stripe-generated test signatures. It covers fixed amounts and product names for both parts, input tampering, required company/email collection, retry behavior and expired/completed Sessions, malformed and oversized requests, provider failures, rendered success pages rejecting swapped installment amounts, verified success states, and isolation from merchandise fulfillment. It never charges a card or sends an email.

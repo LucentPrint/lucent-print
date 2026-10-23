@@ -25,6 +25,7 @@ function loadSource(entry, overrides = {}, environment = {}) {
         target: ts.ScriptTarget.ES2022,
         module: ts.ModuleKind.CommonJS,
         esModuleInterop: true,
+        jsx: ts.JsxEmit.ReactJSX,
       },
     });
     const localRequire = (specifier) => {
@@ -71,7 +72,7 @@ function paidSession(changes = {}) {
     object: "checkout.session",
     metadata: {
       service,
-      schema_version: "1",
+      schema_version: "2",
       invoice_number: invoice,
       payment_part: "deposit",
       request_id: requestId,
@@ -121,7 +122,7 @@ test("invoice input allows only the selected installment and a retry UUID", () =
   }
 });
 
-test("deposit and balance each create one hosted $615 USD payment with the correct invoice identity", () => {
+test("deposit and balance create hosted $615 and $865 USD payments with the correct invoice identity", () => {
   for (const part of ["deposit", "balance"]) {
     const input = deepgramCheckoutSchema.parse(checkoutInput({ part }));
     const params = buildDeepgramCheckout(input, "https://lucent-print.vercel.app/ignored?return=untrusted");
@@ -132,19 +133,21 @@ test("deposit and balance each create one hosted $615 USD payment with the corre
     const item = params.line_items[0];
     assert.equal(item.quantity, 1);
     assert.equal(item.adjustable_quantity, undefined);
-    assert.equal(item.price_data.unit_amount, 61500);
+    assert.equal(item.price_data.unit_amount, part === "deposit" ? 61500 : 86500);
     assert.equal(item.price_data.currency, "usd");
     assert.equal(item.price_data.product_data.name, `Deepgram centerpieces — ${part}`);
     assert.equal(deepgramPaymentName(part), item.price_data.product_data.name);
     assert.equal(item.price_data.recurring, undefined);
     assert.equal(params.subscription_data, undefined);
+    assert.equal(params.invoice_creation, undefined);
+    assert.ok(params.custom_text.submit.message.includes(part === "deposit" ? "$615.00" : "$865.00"));
     assert.equal(params.shipping_options, undefined);
     assert.equal(params.shipping_address_collection, undefined);
     assert.equal(params.discounts, undefined);
     assert.equal(params.allow_promotion_codes, false);
     assert.deepEqual(params.automatic_tax, { enabled: false });
     assert.equal(params.metadata.service, service);
-    assert.equal(params.metadata.schema_version, "1");
+    assert.equal(params.metadata.schema_version, "2");
     assert.equal(params.metadata.invoice_number, invoice);
     assert.equal(params.metadata.payment_part, part);
     assert.equal(params.metadata.request_id, requestId);
@@ -175,13 +178,13 @@ test("deposit and balance retry independently without changing their server-owne
 
 test("a successful receipt requires the exact invoice, installment, amount, currency, mode, and completed paid session", () => {
   for (const part of ["deposit", "balance"]) {
-    assert.equal(deepgramPaymentState(paidSession({ metadata: { ...paidSession().metadata, payment_part: part } })), "paid");
+    assert.equal(deepgramPaymentState(paidSession({ amount_total: part === "deposit" ? 61500 : 86500, metadata: { ...paidSession().metadata, payment_part: part } })), "paid");
   }
   for (const changes of [
     { amount_total: 615 }, { amount_total: 123000 }, { amount_total: 0 }, { amount_total: null },
     { currency: "eur" }, { mode: "subscription" }, { metadata: null },
     { metadata: { ...paidSession().metadata, service: "reservation-booking" } },
-    { metadata: { ...paidSession().metadata, schema_version: "2" } },
+    { metadata: { ...paidSession().metadata, schema_version: "1" } },
     { metadata: { ...paidSession().metadata, invoice_number: "LP-OTHER" } },
     { metadata: { ...paidSession().metadata, payment_part: "full" } },
     { metadata: { service } },
@@ -222,7 +225,7 @@ test("checkout rejects malformed, oversized, foreign-origin, and price-tampering
   assert.equal((await POST(checkoutRequest(JSON.stringify({ padding: "é".repeat(1100) })))).status, 413, "The body limit counts UTF-8 bytes");
   assert.equal((await POST(checkoutRequest(checkoutInput(), { "content-length": "2049" }))).status, 413);
   assert.equal((await POST(checkoutRequest(checkoutInput(), { origin: "https://example.net" }))).status, 403);
-  for (const input of [{}, checkoutInput({ part: "full" }), checkoutInput({ amount: 1 }), checkoutInput({ currency: "eur" }), checkoutInput({ success_url: "https://example.net" })]) {
+  for (const input of [{}, checkoutInput({ part: "full" }), checkoutInput({ amount: 1 }), checkoutInput({ unit_amount: 86500 }), checkoutInput({ quantity: 2 }), checkoutInput({ currency: "eur" }), checkoutInput({ success_url: "https://example.net" })]) {
     assert.equal((await POST(checkoutRequest(input))).status, 400);
   }
   assert.equal(calls, 0);
@@ -256,7 +259,7 @@ test("both installment APIs use fixed pricing and retrieve current session state
     assert.equal(calls.length, 2);
     assert.deepEqual(calls[0], calls[1]);
     assert.deepEqual(retrievals, [cached.id, cached.id]);
-    assert.equal(calls[0].params.line_items[0].price_data.unit_amount, 61500);
+    assert.equal(calls[0].params.line_items[0].price_data.unit_amount, part === "deposit" ? 61500 : 86500);
     assert.equal(calls[0].params.line_items[0].quantity, 1);
     assert.equal(calls[0].params.metadata.payment_part, part);
     assert.equal(calls[0].params.metadata.invoice_number, invoice);
@@ -337,7 +340,7 @@ async function signedWebhook(session, { eventType = "checkout.session.completed"
 
 test("signed deposit and balance webhooks validate payment without merchandise fulfillment", async () => {
   for (const part of ["deposit", "balance"]) {
-    const session = paidSession({ metadata: { ...paidSession().metadata, payment_part: part } });
+    const session = paidSession({ amount_total: part === "deposit" ? 61500 : 86500, metadata: { ...paidSession().metadata, payment_part: part } });
     for (const eventType of ["checkout.session.completed", "checkout.session.async_payment_succeeded"]) {
       const response = await signedWebhook(session, { eventType });
       assert.equal(response.status, 200);
@@ -355,11 +358,53 @@ test("signed invoice webhooks reject mismatched payment details and invalid sign
   assert.equal((await signedWebhook(paidSession(), { invalidSignature: true })).status, 400);
   for (const changes of [
     { amount_total: 1 }, { amount_total: 123000 }, { currency: "eur" }, { mode: "subscription" },
-    { metadata: { ...paidSession().metadata, schema_version: "2" } },
+    { metadata: { ...paidSession().metadata, schema_version: "1" } },
     { metadata: { ...paidSession().metadata, invoice_number: "LP-OTHER" } },
     { metadata: { ...paidSession().metadata, payment_part: "full" } },
     { metadata: { ...paidSession().metadata, service: "merchandise" } },
   ]) {
     assert.equal((await signedWebhook(paidSession(changes))).status, 400, JSON.stringify(changes));
   }
+});
+
+
+test("success page and webhook accept only the correct total for each part", async () => {
+  const { renderToStaticMarkup } = requireFromProject("react-dom/server");
+  for (const [part, correct, wrong] of [["deposit", 61500, 86500], ["balance", 86500, 61500]]) {
+    for (const amount of [correct, wrong]) {
+      const session = paidSession({ amount_total: amount, livemode: false, metadata: { ...paidSession().metadata, payment_part: part } });
+      let retrievals = 0;
+      const { default: Page } = loadSource("app/pay/deepgram/success/page.tsx", {
+        stripe: class StripeMock { checkout = { sessions: { retrieve: async (id) => {
+          retrievals += 1;
+          assert.equal(id, session.id);
+          return session;
+        } } }; },
+      }, { STRIPE_API_KEY: "sk_test_local_no_network" });
+      const html = renderToStaticMarkup(await Page({ searchParams: Promise.resolve({ session_id: session.id }) }));
+      assert.equal(retrievals, 1);
+      assert.equal(deepgramPaymentState(session), amount === correct ? "paid" : "invalid");
+      assert.equal((await signedWebhook(session)).status, amount === correct ? 200 : 400);
+      if (amount === correct) {
+        assert.match(html, /Test payment complete/);
+        assert.ok(html.includes(`$${(correct / 100).toFixed(2)} USD ${part}`));
+      } else {
+        assert.match(html, /We couldn’t verify this payment/);
+        assert.ok(!html.includes("Test payment complete"));
+      }
+    }
+  }
+});
+
+test("payment buttons show the revised balance and disable the paid deposit", () => {
+  const { renderToStaticMarkup } = requireFromProject("react-dom/server");
+  const { createElement } = requireFromProject("react");
+  const { DeepgramPaymentButtons } = loadSource("components/deepgram-payment-buttons.tsx");
+  const html = renderToStaticMarkup(createElement(DeepgramPaymentButtons));
+  const buttons = html.match(/<button\b[^>]*>[\s\S]*?<\/button>/g);
+  assert.equal(buttons.length, 2);
+  assert.match(buttons[0], /disabled=""/);
+  assert.match(buttons[0], /Deposit — \$615\.00 \(paid\)/);
+  assert.doesNotMatch(buttons[1], /disabled=/);
+  assert.match(buttons[1], /Pay balance — \$865\.00/);
 });

@@ -1,8 +1,8 @@
 import type Stripe from "stripe";
 import {
-  DEEPGRAM_CURRENCY, DEEPGRAM_INVOICE_NUMBER, DEEPGRAM_PAYMENT_AMOUNT,
+  DEEPGRAM_CURRENCY, DEEPGRAM_INVOICE_NUMBER, deepgramPaymentAmount,
   DEEPGRAM_SERVICE, DEEPGRAM_VERSION, deepgramPaymentName,
-  type DeepgramCheckoutInput,
+  type DeepgramCheckoutInput, type DeepgramPaymentPart,
 } from "./deepgram-invoice";
 
 export function buildDeepgramCheckout(input: DeepgramCheckoutInput, siteUrl: string): Stripe.Checkout.SessionCreateParams {
@@ -23,7 +23,7 @@ export function buildDeepgramCheckout(input: DeepgramCheckoutInput, siteUrl: str
       quantity: 1,
       price_data: {
         currency: DEEPGRAM_CURRENCY,
-        unit_amount: DEEPGRAM_PAYMENT_AMOUNT,
+        unit_amount: deepgramPaymentAmount(input.part),
         product_data: {
           name: deepgramPaymentName(input.part),
           description: `Lucent Print — Invoice ${DEEPGRAM_INVOICE_NUMBER}`,
@@ -44,7 +44,7 @@ export function buildDeepgramCheckout(input: DeepgramCheckoutInput, siteUrl: str
     },
     submit_type: "pay",
     custom_text: {
-      submit: { message: `Invoice ${DEEPGRAM_INVOICE_NUMBER}. Enter Deepgram’s accounts payable email for the payment receipt. This is a one-time $615.00 USD ${input.part} payment.` },
+      submit: { message: `Invoice ${DEEPGRAM_INVOICE_NUMBER}. Enter Deepgram’s accounts payable email for the payment receipt. This is a one-time $${(deepgramPaymentAmount(input.part) / 100).toFixed(2)} USD ${input.part} payment.` },
     },
     success_url: `${origin}/pay/deepgram/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/pay/deepgram`,
@@ -67,7 +67,7 @@ export function deepgramPaymentState(session: DeepgramSession): "paid" | "proces
   const metadata = session.metadata;
   if (metadata?.service !== DEEPGRAM_SERVICE || metadata.schema_version !== DEEPGRAM_VERSION ||
     metadata.invoice_number !== DEEPGRAM_INVOICE_NUMBER || !["deposit", "balance"].includes(metadata.payment_part) ||
-    session.mode !== "payment" || session.currency !== DEEPGRAM_CURRENCY || session.amount_total !== DEEPGRAM_PAYMENT_AMOUNT) {
+    session.mode !== "payment" || session.currency !== DEEPGRAM_CURRENCY || session.amount_total !== deepgramPaymentAmount(metadata.payment_part as DeepgramPaymentPart)) {
     return "invalid";
   }
   if (session.status === "complete" && session.payment_status === "paid") return "paid";
