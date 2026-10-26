@@ -1,12 +1,14 @@
+import { BrandDivider } from "./brand-masthead";
+import { ThemeControl } from "./theme-control";
+import Image from "next/image";
 import Link from "next/link";
 
 export function Footer() {
   return (
     <footer className="border-t border-white/10 py-12">
-      <div className="shell grid gap-8 md:grid-cols-4">
+      <BrandDivider/><div className="shell grid gap-8 md:grid-cols-4">
         <div>
-          <b>LUCENT PRINT</b>
-          <p className="muted">Live. Create. Inspire.</p>
+          <div className="lp-footer-logo"><Image src="/images/brand/lucent-code-cascade-front.svg" alt="Lucent Print — Live. Create. Inspire." width={240} height={80} unoptimized /></div>
           <Link className="muted mt-3 inline-block break-all hover:text-white" href="/contact">
             lu@lucentprintlic.com
           </Link>
@@ -14,7 +16,10 @@ export function Footer() {
         <div>
           <b>Shop &amp; services</b>
           <div className="muted mt-3 grid gap-2">
-            <Link href="/shop">3D printing</Link>
+            <Link href="/apparel">Shirts &amp; Team Gear</Link>
+            <Link href="/custom">Custom Prints &amp; Gifts</Link>
+            <Link href="/events-business">Events &amp; Business Orders</Link>
+            <Link href="/shop">3D prints &amp; collectibles</Link>
             <Link href="/custom-studio">Custom apparel</Link>
             <Link href="/tumblers">Tumblers</Link>
             <Link href="/party-planning">Party Planning &amp; Reservations</Link>
@@ -31,6 +36,7 @@ export function Footer() {
           </div>
         </div>
         <div>
+          <ThemeControl />
           <b>Support</b>
           <div className="muted mt-3 grid gap-2">
             <Link href="/contact">Email us</Link>

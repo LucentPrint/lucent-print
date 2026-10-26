@@ -1,0 +1,2 @@
+// Runs before the body paints. No user data is interpolated into this script.
+export const themeInit = `(function(){var p='system';try{var v=localStorage.getItem('lucent-color-mode');if(v==='light'||v==='dark')p=v;}catch(e){}var r=document.documentElement;r.dataset.themePreference=p;r.dataset.theme=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;r.style.colorScheme=r.dataset.theme;})();`;
