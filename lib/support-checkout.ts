@@ -12,6 +12,9 @@ export function buildSupportCheckout(input: SupportCheckoutInput, siteUrl: strin
     schema_version: SUPPORT_VERSION,
     invoice_number: SUPPORT_REFERENCE,
     request_id: input.clientRequestId,
+    service_description: SUPPORT_NAME,
+    service_start_date: "2026-10-26",
+    service_end_date: "2026-10-29",
   };
   return {
     mode: "payment",
@@ -23,7 +26,7 @@ export function buildSupportCheckout(input: SupportCheckoutInput, siteUrl: strin
         unit_amount: SUPPORT_AMOUNT,
         product_data: {
           name: SUPPORT_NAME,
-          description: "Onsite event support, October 27–29, 2026. Flat support fee only; no reimbursements. Invoice LP-2026-1027-ES.",
+          description: "Onsite and on-call event support, October 26–29, 2026. Flat support fee only; no reimbursements. Invoice LP-2026-1027-ES.",
           metadata: { service: SUPPORT_SERVICE, invoice_number: SUPPORT_REFERENCE },
         },
       },
@@ -37,11 +40,11 @@ export function buildSupportCheckout(input: SupportCheckoutInput, siteUrl: strin
     metadata,
     payment_intent_data: {
       metadata,
-      description: `${SUPPORT_NAME} · October 27–29, 2026 · ${SUPPORT_REFERENCE}`,
+      description: `${SUPPORT_NAME} · October 26–29, 2026 · ${SUPPORT_REFERENCE}`,
     },
     submit_type: "pay",
     custom_text: {
-      submit: { message: "One-time $1,350.00 USD onsite event support. Invoice LP-2026-1027-ES. No reimbursements. Enter Deepgram’s accounts payable email for the payment receipt." },
+      submit: { message: "One-time $1,350.00 USD onsite and on-call event support. Invoice LP-2026-1027-ES. No reimbursements. Enter Deepgram’s accounts payable email for the payment receipt." },
     },
     success_url: `${origin}/pay/deepgram/support/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/pay/deepgram/support`,
@@ -63,7 +66,7 @@ export function isSupportSession(session: Pick<SupportSession, "metadata">) {
 
 export function supportPaymentState(session: SupportSession): "paid" | "processing" | "incomplete" | "invalid" {
   const metadata = session.metadata;
-  if (metadata?.service !== SUPPORT_SERVICE || metadata.schema_version !== SUPPORT_VERSION ||
+  if (metadata?.service !== SUPPORT_SERVICE || !["1", SUPPORT_VERSION].includes(metadata.schema_version) ||
     metadata.invoice_number !== SUPPORT_REFERENCE || session.mode !== "payment" ||
     session.currency !== SUPPORT_CURRENCY || session.amount_total !== SUPPORT_AMOUNT) {
     return "invalid";

@@ -7,7 +7,7 @@ import { supportPaymentState, validSupportSessionId } from "@/lib/support-checko
 
 export const metadata: Metadata = {
   title: { absolute: `Lucent Print — ${SUPPORT_NAME}` },
-  description: "Lucent Print onsite event support payment confirmation.",
+  description: "Lucent Print onsite and on-call event support payment confirmation.",
   robots: { index: false, follow: false },
   referrer: "no-referrer",
 };
@@ -34,7 +34,7 @@ export default async function SupportPaymentSuccess({ searchParams }: {
   const copy = {
     paid: {
       title: isTestMode ? "Test payment complete" : "Payment received — thank you",
-      message: `Your ${amount} USD onsite event support for Deepgram · October 27–29, 2026 is complete.`,
+      message: `Your ${amount} USD onsite and on-call event support for Deepgram · October 26–29, 2026 is complete.`,
       detail: "Keep this confirmation for your records. Contact Lucent Print with any questions about your support.",
       icon: CheckCircle2,
     },
@@ -65,7 +65,7 @@ export default async function SupportPaymentSuccess({ searchParams }: {
       <div className="shell max-w-3xl">
         <div className="glass rounded-[28px] p-7 sm:p-12">
           <Icon size={44} className={state === "paid" ? "text-emerald-400" : "text-blue-400"} aria-hidden="true" />
-          <p className="eyebrow mt-7">Deepgram · Onsite event support</p>
+          <p className="eyebrow mt-7">Deepgram · Onsite and on-call event support</p>
           {isTestMode && <p className="mt-4 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm font-bold text-amber-200">Stripe test mode · No real payment was collected.</p>}
           <h1 className="my-5 text-4xl font-black tracking-tight sm:text-5xl">{copy.title}</h1>
           <p className="text-lg">{copy.message}</p>

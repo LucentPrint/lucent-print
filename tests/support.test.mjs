@@ -61,7 +61,7 @@ function paidSession(changes = {}) {
   return {
     id: "cs_test_support1234567890",
     object: "checkout.session",
-    metadata: { service, schema_version: "1", invoice_number: reference, request_id: requestId },
+    metadata: { service, schema_version: "2", invoice_number: reference, request_id: requestId },
     mode: "payment", payment_status: "paid", currency: "usd", amount_total: 135000, status: "complete",
     ...changes,
   };
@@ -96,12 +96,16 @@ test("support is exactly $1,350.00 USD once, with no editable price or added cha
 
   const params = buildSupportCheckout(input, `${baseUrl}/ignored?return=untrusted`);
   assert.equal(params.mode, "payment");
+  assert.equal(params.metadata.service_start_date, "2026-10-26");
+  assert.equal(params.metadata.service_end_date, "2026-10-29");
+  assert.equal(params.metadata.service_description, "Deepgram onsite and on-call event support");
+  assert.match(params.line_items[0].price_data.product_data.description, /October 26–29/);
   assert.equal(params.line_items.length, 1);
   const item = params.line_items[0];
   assert.equal(item.quantity, 1);
   assert.equal(item.price_data.unit_amount, 135000);
   assert.equal(item.price_data.currency, "usd");
-  assert.equal(item.price_data.product_data.name, "Deepgram onsite event support");
+  assert.equal(item.price_data.product_data.name, "Deepgram onsite and on-call event support");
   for (const field of ["subscription_data", "shipping_options", "shipping_address_collection", "discounts"])
     assert.equal(params[field], undefined, field);
   assert.equal(item.adjustable_quantity, undefined);
@@ -124,11 +128,12 @@ test("support is exactly $1,350.00 USD once, with no editable price or added cha
 
 test("receipt state requires exact support identity and a complete paid session", () => {
   assert.equal(supportPaymentState(paidSession()), "paid");
+  assert.equal(supportPaymentState(paidSession({ metadata: { ...paidSession().metadata, schema_version: "1" } })), "paid", "Previously issued sessions remain verifiable");
   for (const changes of [
     { amount_total: 61500 }, { amount_total: 80730 }, { amount_total: 1 }, { amount_total: null },
     { currency: "eur" }, { mode: "subscription" }, { metadata: null },
     { metadata: { ...paidSession().metadata, service: "deepgram-centerpieces" } },
-    { metadata: { ...paidSession().metadata, schema_version: "2" } },
+    { metadata: { ...paidSession().metadata, schema_version: "3" } },
     { metadata: { ...paidSession().metadata, invoice_number: "LP-OTHER" } },
   ]) assert.equal(supportPaymentState(paidSession(changes)), "invalid", JSON.stringify(changes));
   assert.equal(supportPaymentState(paidSession({ payment_status: "unpaid" })), "processing");
