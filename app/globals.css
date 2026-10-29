@@ -67,3 +67,16 @@ footer>.lp-four-divider{margin-top:0;margin-bottom:35px}.lp-footer-logo{margin:a
 @media(min-width:1280px){.lp-header-inner{height:142px;padding-top:88px}#main-navigation{position:static;display:flex;flex-direction:row;align-items:center;justify-content:center;border:0;background:transparent;box-shadow:none;padding:0;max-height:none;overflow:visible}.lp-header-cart{top:26px}.lp-header-account{top:36px}}
 @media(max-width:800px){.lp-header-inner{height:76px}.lp-header-logo{width:186px;top:6px}.lp-brand-masthead{padding:26px 16px 0}.lp-brand-center{padding:13px 8px;border-radius:8px}.lp-brand-masthead:before,.lp-brand-masthead:after{display:none}.lp-four-divider{height:34px;background-size:auto 34px;margin:18px auto}.lp-brand-compact{padding:0 0 10px}.lp-hero{padding-top:18px}.lp-hero h1{font-size:46px}.lp-header-inner #main-navigation{top:76px}.lp-header-account{display:none}.lp-process{padding-top:22px}}
 @media(min-width:1280px){.lp-menu-toggle{display:none}#main-navigation>.xl\:hidden,#main-navigation>a[href="/account"]{display:none}}
+
+/* Concrete service discovery, scoped to the homepage preview. */
+.lp-offering-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.lp-offering-grid .lp-path-card{display:flex;flex-direction:column}
+.lp-offering-grid .lp-card-copy{flex:1;display:flex;flex-direction:column}
+.lp-offering-grid .lp-card-action{margin-top:auto;min-height:44px;align-items:center}
+.lp-secondary-action{margin-top:8px;font-size:13px}
+.lp-category-panel{position:relative;isolation:isolate;overflow:hidden;aspect-ratio:1.4;padding:34px;display:flex;flex-direction:column;justify-content:center;background:#132231}
+.lp-category-panel>p{font-size:clamp(25px,3vw,42px);line-height:1.1;letter-spacing:-.035em;font-weight:850;max-width:340px;margin-top:22px;z-index:1}
+.lp-category-four{position:absolute;inset:0;opacity:.16;background-image:url('/images/brand/cascade-fours.svg');background-repeat:repeat;background-size:110px;pointer-events:none;z-index:-1}
+.lp-offering-grid .lp-path-card:nth-child(4){border-top:3px solid var(--lp-orange)}
+html[data-theme="light"] .lp-category-panel{background:#eaf0f8}
+@media(max-width:800px){.lp-offering-grid{grid-template-columns:1fr}.lp-category-panel{aspect-ratio:1.65;padding:25px}.lp-category-panel>p{font-size:32px}}
