@@ -1,3 +1,4 @@
+import { isSupportSession, supportPaymentState } from "@/lib/support-checkout";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -31,6 +32,14 @@ export async function POST(req: Request) {
       event.type === "checkout.session.async_payment_succeeded"
     ) {
       const session = event.data.object as Stripe.Checkout.Session;
+      if (isSupportSession(session)) {
+        const paymentState = supportPaymentState(session);
+        if (paymentState === "invalid") {
+          return NextResponse.json({ error: "Support invoice checkout validation failed" }, { status: 400 });
+        }
+        // Support payments stay in Stripe; no merchandise fulfillment or email.
+        return NextResponse.json({ received: true, type: event.type, service: session.metadata?.service, payment_status: paymentState });
+      }
       if (isReimbursementSession(session)) {
         const paymentState = reimbursementPaymentState(session);
         if (paymentState === "invalid") {
