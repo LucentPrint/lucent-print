@@ -1,3 +1,4 @@
+import { CascadeMotionControl } from "./cascade-background";
 import { BrandDivider } from "./brand-masthead";
 import { ThemeControl } from "./theme-control";
 import Image from "next/image";
@@ -37,6 +38,7 @@ export function Footer() {
         </div>
         <div>
           <ThemeControl />
+          <CascadeMotionControl />
           <b>Support</b>
           <div className="muted mt-3 grid gap-2">
             <Link href="/contact">Email us</Link>

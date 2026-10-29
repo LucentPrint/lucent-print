@@ -80,3 +80,21 @@ footer>.lp-four-divider{margin-top:0;margin-bottom:35px}.lp-footer-logo{margin:a
 .lp-offering-grid .lp-path-card:nth-child(4){border-top:3px solid var(--lp-orange)}
 html[data-theme="light"] .lp-category-panel{background:#eaf0f8}
 @media(max-width:800px){.lp-offering-grid{grid-template-columns:1fr}.lp-category-panel{aspect-ratio:1.65;padding:25px}.lp-category-panel>p{font-size:32px}}
+
+.lp-work-photo.lp-original-art{background:#fff;aspect-ratio:1}.lp-original-art img{padding:22px 22px 55px}
+
+/* Full-site Code Cascade backdrop: exact original glyphs, one composited layer. */
+body{isolation:isolate}
+body>main,body>footer{position:relative;z-index:1}
+.lp-cascade-background{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;user-select:none;opacity:.20}
+.lp-cascade-fall{position:absolute;inset:-600px 0 0;background:url('/images/brand/cascade-background.svg') 0 0/420px 600px repeat;animation:lp-cascade-drift 85s linear infinite;animation-play-state:paused;will-change:transform;pointer-events:none}
+html[data-cascade-motion="running"] .lp-cascade-fall{animation-play-state:running}
+@keyframes lp-cascade-drift{from{transform:translateY(0)}to{transform:translateY(600px)}}
+.lucent-home,html[data-theme="light"] .lucent-home{background:transparent}
+.lp-work{background:rgba(16,23,32,.58)}
+html[data-theme="light"] .lp-work{background:rgba(234,240,248,.58)}
+html[data-theme="light"] .lp-cascade-background{opacity:.16}
+html[data-theme="light"] footer{background:rgba(237,242,248,.55)}
+.lp-motion-control{margin:0 0 24px}.lp-motion-control button{min-height:44px;border:1px solid currentColor;border-radius:7px;padding:8px 12px;font-size:12px}.lp-motion-control button:focus-visible{outline:3px solid #68aaff;outline-offset:3px}.lp-motion-control p{font-size:11px;line-height:1.5;color:var(--muted);margin-top:8px;max-width:240px}
+@media(max-width:600px){.lp-cascade-fall{background-size:420px 600px}.lp-cascade-background{opacity:.15}html[data-theme="light"] .lp-cascade-background{opacity:.13}}
+@media(prefers-reduced-motion:reduce){.lp-cascade-fall{animation:none!important;transform:none!important;will-change:auto}}
