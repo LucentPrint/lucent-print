@@ -98,3 +98,10 @@ html[data-theme="light"] footer{background:rgba(237,242,248,.12)}
 .lp-motion-control{margin:0 0 24px}.lp-motion-control button{min-height:44px;border:1px solid currentColor;border-radius:7px;padding:8px 12px;font-size:12px}.lp-motion-control button:focus-visible{outline:3px solid #68aaff;outline-offset:3px}.lp-motion-control p{font-size:11px;line-height:1.5;color:var(--muted);margin-top:8px;max-width:240px}
 @media(max-width:600px){.lp-cascade-fall{background-size:420px 600px}.lp-cascade-background{opacity:.32}html[data-theme="light"] .lp-cascade-background{opacity:.23}}
 @media(prefers-reduced-motion:reduce){.lp-cascade-fall{animation:none!important;transform:none!important;will-change:auto}}
+
+/* The small Code Cascade texture stays distinct from the moving background. */
+.lp-category-four{opacity:.40;background-size:220px auto}
+.lp-service-grid article,.lp-close,body>footer{position:relative;isolation:isolate}
+.lp-service-grid article::before,.lp-close::before,body>footer::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;user-select:none;border-radius:inherit;background:url('/images/brand/cascade-fours.svg') 0 0/220px auto repeat;opacity:.25}
+html[data-theme="light"] .lp-category-four{opacity:.30}
+html[data-theme="light"] :is(.lp-service-grid article,.lp-close,body>footer)::before{opacity:.17}
