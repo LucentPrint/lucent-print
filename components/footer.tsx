@@ -9,7 +9,7 @@ export function Footer() {
     <footer className="border-t border-white/10 py-12">
       <BrandDivider/><div className="shell grid gap-8 md:grid-cols-4">
         <div>
-          <div className="lp-footer-logo"><Image src="/images/brand/lucent-code-cascade-front.svg" alt="Lucent Print — Live. Create. Inspire." width={240} height={80} unoptimized /></div>
+          <div className="lp-footer-logo"><Image src="/images/brand/lucent-code-cascade-front-color-fours.svg" alt="Lucent Print — Live. Create. Inspire." width={240} height={80} unoptimized /></div>
           <Link className="muted mt-3 inline-block break-all hover:text-white" href="/contact">
             lu@lucentprintlic.com
           </Link>

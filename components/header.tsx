@@ -16,7 +16,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/85 backdrop-blur-xl">
       <div className="shell lp-header-inner">
         <Link href="/" onClick={closeMenu} className="lp-header-logo" aria-label="Lucent Print home">
-          <Image src="/images/brand/lucent-code-cascade-front.svg" width={240} height={80} alt="Lucent Print — Live. Create. Inspire." unoptimized priority />
+          <Image src="/images/brand/lucent-code-cascade-front-color-fours.svg" width={240} height={80} alt="Lucent Print — Live. Create. Inspire." unoptimized priority />
         </Link>
 
         <nav
