@@ -22,6 +22,7 @@ export function Footer() {
             <Link href="/events-business">Events &amp; Business Orders</Link>
             <Link href="/shop">3D prints &amp; collectibles</Link>
             <Link href="/custom-studio">Custom apparel</Link>
+            <Link href="/sublimation">Sublimation requests</Link>
             <Link href="/tumblers">Tumblers</Link>
             <Link href="/party-planning">Party Planning &amp; Reservations</Link>
             <Link href="/our-work">Our Work</Link>
