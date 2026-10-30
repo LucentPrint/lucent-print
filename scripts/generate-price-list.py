@@ -7,10 +7,8 @@ from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUTS = [
-    ROOT / "public/documents/Lucent_Print_Price_List.pdf",
-    ROOT.parents[1] / "outputs/Lucent_Print_Full_Inventory_Price_List.pdf",
-]
+# Historical generator only. Never overwrite the current collection price download.
+OUTPUTS = [ROOT / "public/documents/historical/Lucent_Print_Price_List_2026-09-28.pdf"]
 
 PRODUCTS = [
     ("Pumpkin Cupcake Clicker", "$10.99", "50"),
