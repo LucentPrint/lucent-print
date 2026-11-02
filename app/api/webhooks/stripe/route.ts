@@ -1,3 +1,4 @@
+import { isExtrasSession, extrasPaymentState } from "@/lib/extras-checkout";
 import { isSupportSession, supportPaymentState } from "@/lib/support-checkout";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -32,6 +33,12 @@ export async function POST(req: Request) {
       event.type === "checkout.session.async_payment_succeeded"
     ) {
       const session = event.data.object as Stripe.Checkout.Session;
+      if (isExtrasSession(session)) {
+        const paymentState = extrasPaymentState(session);
+        if (paymentState === "invalid") return NextResponse.json({ error: "Additional merchandise invoice validation failed" }, { status: 400 });
+        // This separate invoice stays in Stripe; no catalog fulfillment or email.
+        return NextResponse.json({ received: true, type: event.type, service: session.metadata?.service, payment_status: paymentState });
+      }
       if (isSupportSession(session)) {
         const paymentState = supportPaymentState(session);
         if (paymentState === "invalid") {
