@@ -16,10 +16,6 @@ const shirtExamples = [
   { name: "Tiger Baby Bro", image: "/images/our-work/tiger-baby-bro-shirt.jpg", slug: "tiger-baby-bro-custom-shirt" },
 ] as const;
 
-function money(value: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
-}
-
 export default function Page() {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -100,7 +96,7 @@ export default function Page() {
             <p className="font-black text-pink-200">Sublimation-printed shirts arrive September 28, 2026.</p>
             <p className="muted mt-1 text-sm">Full-color printing on white or light-colored polyester and polyester-cotton blends. Higher polyester content gives brighter results; blends create a softer, vintage look. Pricing will be confirmed after we review your shirt and artwork.</p>
           </div>
-          <p className="muted mt-4 text-sm">Name, text and number personalization and your supplied artwork are included. Custom design is $15 per design; complex artwork starts at $35 by quote. Two revisions are included, then $5 each.</p>
+          <p className="muted mt-4 text-sm">Catalog designs are included. Simple names/numbers +$5. New custom artwork from $25; complex work quoted individually.</p>
         </div>
         <div className="glass grid gap-4 rounded-3xl p-7 sm:grid-cols-2">
           {[["Turnaround","7–10 business days"],["Minimum","No minimum"],["Deposit","50% to start"],["Proof","Approved before pressing"]].map(([label,value])=><div key={label}><p className="eyebrow">{label}</p><b>{value}</b></div>)}
@@ -114,7 +110,7 @@ export default function Page() {
         <h2 className="mt-3 text-4xl font-black">Your artwork. Your shirt color.</h2>
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           {[
-            { method: "heat-transfer", color: "Black", title: "Black Custom Heat-Transfer Shirt", copy: "Add your design to a black shirt using our normal heat-transfer printing. Suitable fabrics include cotton, polyester and polyester-cotton blends, using a transfer matched to the garment. Build your estimate with the existing garment, placement and artwork options.", action: "Customize a black heat-transfer shirt" },
+            { method: "heat-transfer", color: "Black", title: "Black Custom Heat-Transfer Shirt", copy: "Add your design to a black shirt using our normal heat-transfer printing. Suitable fabrics include cotton, polyester and polyester-cotton blends, using a transfer matched to the garment. Plan your request with the garment, placement and artwork options.", action: "Customize a black heat-transfer shirt" },
             { method: "sublimation", color: "White", title: "Light-Color Custom Sublimation Shirt", copy: "Choose white, light gray, light blue, light pink, pale yellow, mint, light lavender or cream. Available starting September 28, 2026 on polyester or polyester-cotton blends. 100% polyester gives the brightest results; blends give a softer, vintage finish. Color availability and final price are confirmed with your quote.", action: "Customize a light-color sublimation shirt" },
           ].map((option) => <article key={option.method} className="glass overflow-hidden rounded-3xl p-7">
             <div className="relative mb-5 aspect-[3/2]"><Image src={COMING_SOON_IMAGE} alt={option.title} fill sizes="(max-width:768px) 100vw, 50vw" className="object-contain"/></div>
@@ -171,7 +167,8 @@ export default function Page() {
       <div className="shell">
         <p className="eyebrow">Custom shirt request</p>
         <h2 className="title my-6">Build your order.</h2>
-        <p className="muted mb-10 max-w-3xl">Build an estimate as you go. Lucent Print will confirm the final price, artwork and production date before anything is pressed.</p>
+        <p className="muted mb-10 max-w-3xl">Plan your request. Lucent Print will confirm the final price, artwork and production date before anything is pressed.</p>
+        <p className="mb-8 rounded-xl border border-current/20 p-4">Updated base-price guide: kids/youth shirts $20, adults $25; catalog designs included; simple names/numbers +$5; new artwork from $25; complex work quoted. Final totals are quoted after garment and artwork review. <Link className="underline" href="/pricing">Request a confirmed quote using the current guide</Link>.</p>
         <div className="grid items-start gap-8 lg:grid-cols-[1fr_380px]">
           <form onSubmit={submit} className="grid gap-6">
             <fieldset className="glass grid gap-4 rounded-3xl p-6">
@@ -213,8 +210,8 @@ export default function Page() {
                 {placements.map((placement)=><label className="input flex items-center gap-3" key={placement}><input type="checkbox" checked={selectedPlacements.includes(placement)} onChange={()=>togglePlacement(placement)}/>{placement}</label>)}
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <select className="input" value={artwork} onChange={(event)=>setArtwork(event.target.value)}><option value="ready">I have print-ready artwork</option><option value="design">Create a custom design (+$15 per design)</option><option value="complex">Complex artwork (from $35, quoted)</option></select>
-                <select className="input" value={personalization} onChange={(event)=>setPersonalization(event.target.value)}><option value="same">Same design on every shirt</option><option value="individual">Individual names / numbers (included)</option></select>
+                <select className="input" value={artwork} onChange={(event)=>setArtwork(event.target.value)}><option value="ready">I have print-ready artwork</option><option value="design">Create custom artwork (from $25)</option><option value="complex">Complex artwork (quoted individually)</option></select>
+                <select className="input" value={personalization} onChange={(event)=>setPersonalization(event.target.value)}><option value="same">Same design on every shirt</option><option value="individual">Individual names / numbers (+$5)</option></select>
               </div>
               <textarea name="description" className="input min-h-32" placeholder="Describe the design, wording, colors and placement details" required/>
               <div className="grid gap-2 text-sm font-bold">
@@ -256,19 +253,16 @@ export default function Page() {
           </form>
 
           <aside className="glass sticky top-24 rounded-3xl p-6">
-            <p className="eyebrow">Work ticket</p><h3 className="mt-2 text-3xl font-black">Estimate</h3>
+            <p className="eyebrow">Work ticket</p><h3 className="mt-2 text-3xl font-black">Request summary</h3>
             <div className="my-6 grid gap-3 text-sm">
               <div className="flex justify-between"><span>Shirts</span><b>{estimate.quantity}</b></div>
               <div className="flex justify-between gap-4"><span>Shirt color</span><b className="break-words text-right">{shirtColor || "Choose a color"}</b></div>
               <div className="flex justify-between"><span>Printing method</span><b>{printMethod === "sublimation" ? "Sublimation" : "Heat transfer"}</b></div>
               <div className="flex justify-between"><span>Print locations</span><b>{selectedPlacements.length}</b></div>
-              {estimate.lines.map(line => <div key={line.size} className="flex justify-between gap-3"><span>{line.size} × {line.count}</span><b>{line.unit == null ? "Quoted" : `${money(line.unit)} each`}</b></div>)}
-              {estimate.setup > 0 && <div className="flex justify-between"><span>Custom design · one fee</span><b>{money(estimate.setup)}</b></div>}
-              {artwork === "complex" && <p>Complex artwork: from $35, quoted.</p>}
-              {estimate.team && <p className="text-emerald-300">12+ shirt team rates applied.</p>}
-              <p className="muted">Name, text and number personalization included.</p>
+              {estimate.lines.map(line => <div key={line.size} className="flex justify-between gap-3"><span>{line.size}</span><b>{line.count} requested</b></div>)}
+              <p className="muted">Shirt base prices: kids/youth $20 · adults $25. Catalog designs included. Simple names/numbers +$5. New custom artwork from $25; complex work quoted.</p>
             </div>
-            <div className="border-t border-white/10 pt-4">{estimate.total == null ? <p className="text-xl font-black">Quote after garment &amp; artwork review</p> : <div className="flex items-end justify-between"><span>Estimated total</span><b className="text-3xl">{money(estimate.total)}</b></div>}<p className="muted mt-3 text-xs">Based on our September 2026 price list. Free local pickup; shipping is calculated when you order. Final price and availability are confirmed after review.</p></div>
+            <div className="border-t border-white/10 pt-4"><p className="text-xl font-black">Confirmed quote required</p><p className="muted mt-3 text-xs">This request does not place an order or collect a payment. Blank, garment options, artwork, availability, shipping and applicable tax are confirmed before ordering.</p></div>
             <Link className="mt-5 inline-block text-blue-300 underline" href="/pricing">View the full price list</Link>
           </aside>
         </div>

@@ -1,0 +1,86 @@
+{
+  "prices": [
+    [
+      "Shirts \u00b7 kids / youth",
+      "$20"
+    ],
+    [
+      "Shirts \u00b7 adults",
+      "$25"
+    ],
+    [
+      "Mugs \u00b7 11 oz",
+      "$15"
+    ],
+    [
+      "Mugs \u00b7 15 oz",
+      "$18"
+    ],
+    [
+      "Tumblers \u00b7 20 oz",
+      "$25"
+    ],
+    [
+      "Tumblers \u00b7 30 oz",
+      "$32"
+    ],
+    [
+      "Tumblers \u00b7 40 oz",
+      "$40"
+    ],
+    [
+      "Water bottles",
+      "Starting at $25"
+    ],
+    [
+      "Totes",
+      "$18"
+    ],
+    [
+      "Coasters",
+      "$6 each / $20 for four"
+    ],
+    [
+      "Decorative plates",
+      "Starting at $25"
+    ],
+    [
+      "Photo panels",
+      "Starting at $12"
+    ],
+    [
+      "Keychains",
+      "$6"
+    ],
+    [
+      "Bookmarks",
+      "$6"
+    ],
+    [
+      "Mouse pads",
+      "$12"
+    ],
+    [
+      "Ornaments",
+      "Starting at $10"
+    ]
+  ],
+  "fees": [
+    [
+      "Catalog designs",
+      "Included"
+    ],
+    [
+      "Simple names / numbers",
+      "+$5"
+    ],
+    [
+      "New custom artwork",
+      "From $25"
+    ],
+    [
+      "Complex work",
+      "Quoted individually"
+    ]
+  ]
+}
