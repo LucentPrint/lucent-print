@@ -12,6 +12,12 @@
     "placement": "Front and back placement preview"
   },
   {
+    "number": 3,
+    "name": "Inspirada Bulldogs Top Dogs 26-27 Shirt",
+    "image": "/images/shirt-previews/03-inspirada-bulldogs-top-dogs-26-27-shirt.png",
+    "placement": "Front and back placement preview \u00b7 contrast outline added"
+  },
+  {
     "number": 4,
     "name": "Inspirada Bulldogs Monochrome Football Shirt",
     "image": "/images/shirt-previews/04-inspirada-bulldogs-monochrome-football-shirt.png",
@@ -120,9 +126,69 @@
     "placement": "Front and back placement preview"
   },
   {
+    "number": 22,
+    "name": "Halloween Crowned Pumpkin T-Shirt",
+    "image": "/images/shirt-previews/22-halloween-crowned-pumpkin-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 23,
+    "name": "Halloween Masked Lollipop T-Shirt",
+    "image": "/images/shirt-previews/23-halloween-masked-lollipop-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 24,
+    "name": "Halloween Card Reaper T-Shirt",
+    "image": "/images/shirt-previews/24-halloween-card-reaper-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 25,
+    "name": "Halloween Horror Squad T-Shirt",
+    "image": "/images/shirt-previews/25-halloween-horror-squad-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 26,
+    "name": "Halloween Vegas Skeleton T-Shirt",
+    "image": "/images/shirt-previews/26-halloween-vegas-skeleton-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 27,
+    "name": "Halloween Crowned Ghost T-Shirt",
+    "image": "/images/shirt-previews/27-halloween-crowned-ghost-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
     "number": 28,
     "name": "Faith Over Fear T-Shirt",
     "image": "/images/shirt-previews/28-faith-over-fear-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 29,
+    "name": "Faith Archer Dark T-Shirt",
+    "image": "/images/shirt-previews/29-faith-archer-dark-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 30,
+    "name": "Faith Archer Light T-Shirt",
+    "image": "/images/shirt-previews/30-faith-archer-light-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 31,
+    "name": "Mo Masc Racing T-Shirt",
+    "image": "/images/shirt-previews/31-mo-masc-racing-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 32,
+    "name": "Mo Masc Red Brush T-Shirt",
+    "image": "/images/shirt-previews/32-mo-masc-red-brush-t-shirt.png",
     "placement": "Front and back placement preview"
   },
   {
@@ -138,9 +204,63 @@
     "placement": "Front and back placement preview"
   },
   {
+    "number": 36,
+    "name": "Tiger Grandma T-Shirt",
+    "image": "/images/shirt-previews/36-tiger-grandma-t-shirt.png",
+    "placement": "Front and back placement preview \u00b7 contrast outline added"
+  },
+  {
+    "number": 37,
+    "name": "Tiger Bonus Dad T-Shirt",
+    "image": "/images/shirt-previews/37-tiger-bonus-dad-t-shirt.png",
+    "placement": "Front and back placement preview \u00b7 contrast outline added"
+  },
+  {
+    "number": 38,
+    "name": "Tiger Baby Bro T-Shirt",
+    "image": "/images/shirt-previews/38-tiger-baby-bro-t-shirt.png",
+    "placement": "Front and back placement preview \u00b7 contrast outline added"
+  },
+  {
+    "number": 39,
+    "name": "Kc Crown Claw T-Shirt",
+    "image": "/images/shirt-previews/39-kc-crown-claw-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 40,
+    "name": "Halloween Portrait Italian Woman T-Shirt",
+    "image": "/images/shirt-previews/40-halloween-portrait-italian-woman-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 41,
+    "name": "Halloween Portrait Asian Woman T-Shirt",
+    "image": "/images/shirt-previews/41-halloween-portrait-asian-woman-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 42,
+    "name": "Halloween Portrait Black Woman T-Shirt",
+    "image": "/images/shirt-previews/42-halloween-portrait-black-woman-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 43,
+    "name": "Halloween Portrait Light Skinned Black Woman T-Shirt",
+    "image": "/images/shirt-previews/43-halloween-portrait-light-skinned-black-woman-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
     "number": 44,
     "name": "Statue Blood T-Shirt",
     "image": "/images/shirt-previews/44-statue-blood-t-shirt.png",
+    "placement": "Front and back placement preview"
+  },
+  {
+    "number": 45,
+    "name": "Three Silent Reapers T-Shirt",
+    "image": "/images/shirt-previews/45-three-silent-reapers-t-shirt.png",
     "placement": "Front and back placement preview"
   }
 ]
