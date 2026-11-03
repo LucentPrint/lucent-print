@@ -1,4 +1,5 @@
 import type { Product } from "./types";
+import { isCollectionShirt, collectionShirtPrice } from "./catalog-shirts";
 
 export const SHIRT_SIZES = ["2T", "3T", "4T", "5T", "YXS", "YS", "YM", "YL", "YXL", "S", "M", "L", "XL", "2XL", "3XL"] as const;
 export const PRINT_PLACEMENTS = ["Front — full chest", "Front — left chest", "Large front", "Full back", "Sleeve"] as const;
@@ -17,13 +18,7 @@ export function shirtUnitPrice(method: PrintMethod, size: string, layout: PrintL
   if (supply === "customer" && method === "sublimation") return null;
   if (method === "heat-transfer" && layout === "large-front") return null;
   if (method === "sublimation" && layout === "large-front" && ["2T", "3T", "4T", "5T", "YXS", "YS", "YM", "YL", "YXL"].includes(size)) return null;
-  const prices: Record<string, readonly [number, number]> = {
-    "2T": [9.99, 12.49], "3T": [9.99, 12.49], "4T": [9.99, 12.49], "5T": [9.99, 12.49],
-    YXS: [9.99, 12.49], YS: [11.49, 13.99], YM: [12.99, 15.49], YL: [14.49, 16.99], YXL: [15.99, 18.49],
-    S: [16.99, 19.49], M: [16.99, 19.49], L: [19.99, 22.49], XL: [19.99, 22.49],
-    "2XL": [24.99, 27.49], "3XL": [26.99, 29.49],
-  };
-  return prices[size][layout === "front-back" ? 1 : 0];
+  return collectionShirtPrice(size);
 }
 
 export function layoutForPlacements(placements: string[]): PrintLayout | null {
@@ -41,8 +36,8 @@ export function customShirtEstimate(input: { method: PrintMethod; quantities: Re
   const quantity = entries.reduce((sum, [, q]) => sum + q, 0);
   const layout = layoutForPlacements(input.placements);
   const lines = entries.map(([size, count]) => ({ size, count, unit: layout ? shirtUnitPrice(input.method, size, layout, quantity, input.supply) : null }));
-  const setup = input.artwork === "design" ? 15 : 0;
-  const requiresQuote = input.garment !== "tshirt" || input.artwork === "complex" || lines.some(line => line.unit == null) || !layout;
+  const setup = input.artwork === "design" ? 25 : 0;
+  const requiresQuote = input.garment !== "tshirt" || input.artwork !== "ready" || lines.some(line => line.unit == null) || !layout;
   const subtotal = Math.round(lines.reduce((sum, line) => sum + (line.unit ?? 0) * line.count, 0) * 100) / 100;
   return { quantity, lines, setup, requiresQuote, total: requiresQuote ? null : Math.round((subtotal + setup) * 100) / 100, team: false };
 }
@@ -55,6 +50,8 @@ export const CATALOG_SHIRT_LAYOUTS: Record<string, PrintLayout> = {
   "tiger-baby-bro-custom-shirt": "front",
 };
 export function catalogUnitPrice(product: Product, size = "S", quantity = 1) {
+  // Invalid saved-cart values display the adult rate; both checkout APIs reject them.
+  if (isCollectionShirt(product)) return collectionShirtPrice(size) ?? 25;
   const layout = CATALOG_SHIRT_LAYOUTS[product.slug];
   if (!layout) return product.price;
   return shirtUnitPrice("heat-transfer", size, layout, quantity) ?? product.price;

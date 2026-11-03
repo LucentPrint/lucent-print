@@ -1,3 +1,4 @@
+import { isCollectionShirt } from "@/lib/catalog-shirts";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { z } from "zod";
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
       if (qualifiesForFamilyPricing && familyPrice == null) {
         throw new Error(`Choose a valid size for ${product.name} before using LUCENTP.`);
       }
-      if (CATALOG_SHIRT_LAYOUTS[product.slug] && !(SHIRT_SIZES as readonly string[]).includes(item.selectedColor ?? "")) throw new Error(`Choose a listed shirt size for ${product.name}. Other sizes require a quote.`);
+      if ((isCollectionShirt(product) || CATALOG_SHIRT_LAYOUTS[product.slug]) && !(SHIRT_SIZES as readonly string[]).includes(item.selectedColor ?? "")) throw new Error(`Choose a listed shirt size for ${product.name}. Other sizes require a quote.`);
       const productQuantity = items.filter(other=>other.id===item.id).reduce((sum,other)=>sum+other.quantity,0);
       const regularPrice = catalogUnitPrice(product, item.selectedColor, productQuantity);
       const orderPrice = familyPrice == null ? regularPrice : Math.min(familyPrice, regularPrice);

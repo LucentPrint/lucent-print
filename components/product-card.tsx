@@ -3,6 +3,8 @@
 import { Bell, Heart, ShoppingBag } from "lucide-react";
 import { ProductImage } from "@/components/product-image";
 import Link from "next/link";
+import { ShirtSizeOptions } from "@/components/shirt-size-options";
+import { isCollectionShirt, collectionShirtPriceLabel } from "@/lib/catalog-shirts";
 import { useState } from "react";
 import { money } from "@/lib/commerce";
 import { getMarketComparison } from "@/lib/pricing";
@@ -19,7 +21,8 @@ export function ProductCard({ p }: { p: Product }) {
   const coming = p.status === "coming_soon" || p.price <= 0;
   const comparison = getMarketComparison(p.collection);
   const [quantity, setQuantity] = useState(1);
-  const apparel = isApparelProduct(p);
+  const collectionShirt = isCollectionShirt(p);
+  const apparel = collectionShirt || isApparelProduct(p);
   const [size, setSize] = useState(apparel ? "S" : "");
 
   return (
@@ -44,14 +47,15 @@ export function ProductCard({ p }: { p: Product }) {
       <div className="p-5">
         <p className="eyebrow">{p.collection}</p>
         <h3 className="my-2 text-xl font-black">{p.name}</h3>
-        <p className="muted min-h-12">{p.description}</p>
+        <p className="muted min-h-12">{collectionShirt ? p.description.replace(/\$\d+(?:\.\d{2})?/g, "the listed size price") : p.description}</p>
+        {collectionShirt && <p className="mt-2 text-sm font-bold">{collectionShirtPriceLabel(p)}</p>}
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <b className="text-xl">{coming ? "Coming soon" : money(catalogUnitPrice(p,size,quantity))}</b>
           <Link className="ml-auto text-sm text-blue-400" href={`/products/${p.slug}`}>
             Details
           </Link>
           {!coming && (
-            apparel ? <label className="flex items-center gap-2 text-sm"><span>Size</span><select aria-label={`Size for ${p.name}`} className="input w-24 py-2" value={size} onChange={(event)=>setSize(event.target.value)}>{APPAREL_SIZES.map((option)=><option key={option} value={option}>{option}</option>)}</select></label> : null
+            apparel ? <label className="flex items-center gap-2 text-sm"><span>Size</span><select aria-label={`Size for ${p.name}`} className="input w-36 py-2" value={size} onChange={(event)=>setSize(event.target.value)}>{collectionShirt ? <ShirtSizeOptions /> : APPAREL_SIZES.map((option)=><option key={option} value={option}>{option}</option>)}</select></label> : null
           )}
           {!coming && (
             <label className="flex items-center gap-2 text-sm">

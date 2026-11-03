@@ -68,9 +68,9 @@ export async function POST(req: Request) {
     `Placements: ${placements.join(", ")}`,
     `Artwork: ${artwork === "design" ? "Design help requested" : "Print-ready artwork supplied"}`,
     "Design revisions: first 2 included; extra revisions $5 each. One design fee per team/bulk order.",
-    `Pricing: ${pricing.total == null ? "Custom quote required" : `$${pricing.total.toFixed(2)} estimate before shipping`}`,
-    `Design service: ${artwork === "complex" ? "Complex artwork from $35, quoted" : artwork === "design" ? "Custom design $15" : "Supplied artwork included"}`,
-    `Personalization: ${personalization === "individual" ? "Individual names/numbers" : "Same design on all shirts"}`,
+    `Pricing: ${pricing.total == null || personalization === "individual" ? "Custom quote required" : `$${pricing.total.toFixed(2)} estimate before shipping`}`,
+    `Design service: ${artwork === "complex" ? "Complex artwork quoted individually" : artwork === "design" ? "New custom artwork from $25, quoted" : "Supplied artwork included"}`,
+    `Personalization: ${personalization === "individual" ? "Simple names/numbers +$5; confirm scope in quote" : "Same design on all shirts"}`,
     `Needed by: ${neededBy}`,
     `Fulfillment: ${String(form.get("fulfillment") ?? "Pickup — Las Vegas")}`,
     `Design: ${design}`,
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
     colors: shirtColor,
     file_url: fileUrl,
     status: "new",
-    estimate: pricing.total,
+    estimate: personalization === "individual" ? null : pricing.total,
   };
   const { error } = await supabase.from("custom_orders").insert(payload);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

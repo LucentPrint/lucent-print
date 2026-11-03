@@ -1,5 +1,7 @@
 import { ProductImage } from "@/components/product-image";
 import Link from "next/link";
+import { isCollectionShirt, collectionShirtPriceLabel } from "@/lib/catalog-shirts";
+import { catalogUnitPrice } from "@/lib/custom-pricing";
 import { notFound } from "next/navigation";
 import { getProduct, getProductReviews } from "@/lib/data";
 import { money } from "@/lib/commerce";
@@ -19,7 +21,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   if (!product) notFound();
   const reviews = await getProductReviews(product.id);
   const coming = product.status === "coming_soon" || product.price <= 0;
-  const apparel = isApparelProduct(product);
+  const collectionShirt = isCollectionShirt(product);
+  const apparel = collectionShirt || isApparelProduct(product);
   const schema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -37,7 +40,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       ? undefined
       : {
           "@type": "Offer",
-          price: product.price,
+          price: catalogUnitPrice(product),
           priceCurrency: "USD",
           availability: product.inventory > 0 ? "https://schema.org/InStock" : "https://schema.org/PreOrder",
         },
@@ -53,9 +56,10 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div>
           <p className="eyebrow">{product.collection}</p>
           <h1 className="title my-5">{product.name}</h1>
-          <p className="text-3xl font-black">{coming ? "Coming soon" : money(product.price)}</p>
-          {!coming && apparel && <p className="muted mt-3">Shirt prices vary by size and print coverage, starting at $9.99 for a front print and $12.49 for front-and-back printing. <Link className="text-blue-300 underline" href="/pricing">View every size and price</Link></p>}
-          <p className="muted my-6 text-lg">{product.description}</p>
+          <p className="text-3xl font-black">{coming ? "Coming soon" : collectionShirt ? "Kids $20 / Adults $25" : money(product.price)}</p>
+          {!coming && collectionShirt && <p className="muted mt-3">{collectionShirtPriceLabel(product)}</p>}
+          {!coming && apparel && !collectionShirt && <p className="muted mt-3">Shirt prices vary by size and print coverage, starting at $9.99 for a front print and $12.49 for front-and-back printing. <Link className="text-blue-300 underline" href="/pricing">View every size and price</Link></p>}
+          <p className="muted my-6 text-lg">{collectionShirt ? product.description.replace(/\$\d+(?:\.\d{2})?/g, "the listed size price") : product.description}</p>
           <div className="grid grid-cols-2 gap-3">
             <div className="glass rounded-xl p-4"><small className="eyebrow">Material</small><b className="block">{product.material}</b></div>
             <div className="glass rounded-xl p-4"><small className="eyebrow">Availability</small><b className="block">{coming ? "In development" : product.inventory || "Pre-order"}</b></div>
