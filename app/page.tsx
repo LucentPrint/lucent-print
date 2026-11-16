@@ -11,6 +11,12 @@ const paths = [
 ];
 export default function Home() {
   return <div className="lucent-home"><BrandMasthead/>
+    <section className="border-b border-amber-200/20 bg-gradient-to-r from-emerald-950 via-zinc-950 to-amber-950/40 py-6">
+      <div className="shell flex flex-wrap items-center justify-between gap-4">
+        <div><p className="text-xs font-bold uppercase tracking-[.2em] text-amber-200">Holiday special</p><p className="mt-1 text-xl font-bold">Custom gift sets from $25. So many ways to make it personal.</p></div>
+        <Link href="/holiday-gifts" className="btn bg-amber-200 text-zinc-950">Explore holiday gifts →</Link>
+      </div>
+    </section>
     <section className="lp-hero shell">
       <div className="lp-hero-copy"><p className="lp-kicker">LUCENT PRINT · LAS VEGAS</p><h1>Raw ideas.<br /><em>Real creations.</em></h1><p className="lp-intro">Raw, innovative creativity—made personal. We create apparel and teamwear, custom gifts and drinkware, and 3D pieces. We also help with party planning, reservations and business orders.</p><div className="lp-actions"><Link className="lp-button" href="#paths-title">Explore what we do <ArrowRight size={18}/></Link><Link className="lp-text-link" href="/contact">Bring us your idea <ArrowUpRight size={18}/></Link></div></div>
       <div className="lp-hero-art"><div className="lp-image-frame"><Image src="/images/our-work/inspirada-green-front.jpg" alt="A finished Inspirada Bulldogs shirt made by Lucent Print" fill sizes="(max-width: 800px) 100vw, 50vw" priority className="object-cover"/></div><div className="lp-image-note"><span className="lp-dot"/> REAL PROJECT / TEAM APPAREL</div><div className="lp-floating-label">A little more <strong>you.</strong></div></div>
