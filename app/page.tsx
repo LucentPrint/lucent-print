@@ -11,10 +11,16 @@ const paths = [
 ];
 export default function Home() {
   return <div className="lucent-home"><BrandMasthead/>
-    <section className="border-b border-amber-200/20 bg-gradient-to-r from-emerald-950 via-zinc-950 to-amber-950/40 py-6">
-      <div className="shell flex flex-wrap items-center justify-between gap-4">
-        <div><p className="text-xs font-bold uppercase tracking-[.2em] text-amber-200">Holiday special</p><p className="mt-1 text-xl font-bold">Custom gift sets from $25. So many ways to make it personal.</p></div>
-        <Link href="/holiday-gifts" className="btn bg-amber-200 text-zinc-950">Explore holiday gifts →</Link>
+    <section className="relative overflow-hidden border-y border-amber-200/30 bg-gradient-to-br from-emerald-950 via-zinc-950 to-amber-950/60 py-12 sm:py-16">
+      <div className="shell grid items-center gap-8 md:grid-cols-[1.1fr_.9fr]">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-[.24em] text-amber-200">The Lucent holiday collection</p>
+          <h2 className="my-5 text-4xl font-black leading-tight sm:text-6xl">Big gift energy.<br /><span className="text-amber-200">Made personal.</span></h2>
+          <p className="max-w-lg text-lg leading-relaxed text-zinc-200">Custom gifts that belong together. Pick your theme, add a matching shirt, and make their everyday a little more them.</p>
+          <div className="my-6 flex flex-wrap gap-3 text-sm font-bold"><span className="rounded-full border border-amber-200/50 px-4 py-2">$25 gift set</span><span className="rounded-full border border-amber-200/50 px-4 py-2">$45 + shirt</span><span className="rounded-full border border-amber-200/50 px-4 py-2">$50 + shirt & phone pop</span></div>
+          <Link href="/holiday-gifts" className="btn bg-amber-200 text-zinc-950">Explore holiday gifts →</Link>
+        </div>
+        <Link href="/holiday-gifts" className="mx-auto block w-full max-w-md overflow-hidden rounded-3xl border border-amber-200/40 shadow-2xl"><Image src="/images/holiday/gwaup-mockup.png" alt="Holiday gift collection concept mockup with coordinated accessories, shirt and phone pop" width={1122} height={1402} sizes="(max-width: 768px) 100vw, 448px" priority className="h-auto w-full"/><span className="block bg-zinc-950 px-4 py-2 text-center text-xs text-zinc-300">Styled concept mockup · Explore all bundles</span></Link>
       </div>
     </section>
     <section className="lp-hero shell">
