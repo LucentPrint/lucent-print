@@ -14,7 +14,7 @@ const bundles = [
 ];
 export default function HolidayGifts() {
   return (
-    <>
+    <div className="holiday-theme">
       <section className="relative overflow-hidden border-b border-amber-200/20 bg-[radial-gradient(ellipse_at_top_left,#173f39,transparent_65%)] py-16 sm:py-24">
         <div className="shell grid items-center gap-10 lg:grid-cols-2">
           <div>
@@ -28,7 +28,7 @@ export default function HolidayGifts() {
             <p className="mt-5 text-sm text-zinc-300">So many combinations to choose from.</p>
           </div>
           <figure className="overflow-hidden rounded-3xl border border-amber-200/25 bg-zinc-900 shadow-2xl">
-            <Image src="/images/holiday/gwaup-mockup.png" alt="Gwaup Boys holiday gift collection concept mockup showing tumbler, coaster, dog tag, air freshener, custom shirt and phone pop" width={1122} height={1402} priority sizes="(max-width: 1024px) 100vw, 50vw" className="h-auto w-full object-contain" />
+            <Image src="/images/holiday/gwaup-holiday-full-set.png" alt="Gwaup Boys holiday gift collection concept mockup showing tumbler, coaster, dog tag, air freshener, custom shirt and phone pop" width={1122} height={1402} priority sizes="(max-width: 1024px) 100vw, 50vw" className="h-auto w-full object-contain" />
             <figcaption className="border-t border-white/10 px-5 py-3 text-sm text-zinc-300">Full $50 collection shown as a professional concept mockup. Shirt included at $45; shirt + phone pop at $50. Final artwork and print colors confirmed before production.</figcaption>
           </figure>
         </div>
@@ -64,10 +64,11 @@ export default function HolidayGifts() {
           </div>
           <div className="grid gap-8 md:grid-cols-2">
             {[
-              { name: "Gwaup Boys", image: "gwaup-mockup.png" },
-              { name: "WNS", image: "wns-mockup.png" },
-              { name: "Exotica Hair Studio", image: "exotica-mockup.png" },
-              { name: "Deepgram", image: "deepgram-mockup.jpg" },
+              { name: "Gwaup Boys", image: "gwaup-holiday-full-set.png" },
+              { name: "WNS", image: "wns-holiday-full-set.png" },
+              { name: "Exotica Hair Studio", image: "exotica-holiday-full-set.png" },
+              { name: "Deepgram", image: "deepgram-holiday-full-set.png" },
+              { name: "Your Logo Here", image: "your-logo-holiday-full-set.png" },
             ].map((design) => <figure key={design.name} className="overflow-hidden rounded-3xl border border-amber-200/25 bg-zinc-900 shadow-xl">
               <a href={`/images/holiday/${design.image}`} target="_blank" rel="noopener noreferrer" aria-label={`View ${design.name} gift collection mockup full size`}>
                 <Image src={`/images/holiday/${design.image}`} alt={`${design.name} concept mockup with coordinated tumbler, coaster, dog tag, air freshener, shirt and phone pop`} width={1122} height={1402} sizes="(max-width: 768px) 100vw, 50vw" className="h-auto w-full" />
@@ -78,6 +79,6 @@ export default function HolidayGifts() {
           <Link href="/contact" className="btn btn-secondary mt-8">Talk through your design</Link>
         </div>
       </section>
-    </>
+    </div>
   );
 }

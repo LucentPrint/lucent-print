@@ -105,3 +105,14 @@ html[data-theme="light"] footer{background:rgba(237,242,248,.12)}
 .lp-service-grid article::before,.lp-close::before,body>footer::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;user-select:none;border-radius:inherit;background:url('/images/brand/cascade-fours.svg') 0 0/220px auto repeat;opacity:.25}
 html[data-theme="light"] .lp-category-four{opacity:.30}
 html[data-theme="light"] :is(.lp-service-grid article,.lp-close,body>footer)::before{opacity:.17}
+
+/* Holiday artwork uses a dark editorial canvas in either appearance mode. */
+.holiday-theme,html[data-theme="light"] .holiday-theme{background-color:#09090b;color:#fafafa;--line:rgba(255,255,255,.2);color-scheme:dark}
+html[data-theme="light"] .holiday-theme :is(.text-white,.text-zinc-100,.text-zinc-200,.text-zinc-300){color:#e4e4e7}
+html[data-theme="light"] .holiday-theme :is(.text-zinc-400,.text-zinc-500){color:#a1a1aa}
+html[data-theme="light"] .holiday-theme .bg-zinc-950{background:#09090b}
+html[data-theme="light"] .holiday-theme .bg-zinc-900{background:#18181b}
+html[data-theme="light"] .holiday-theme .bg-white\/5{background:rgba(255,255,255,.05)}
+html[data-theme="light"] .holiday-theme .btn-secondary{color:#fafafa;background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.25)}
+.holiday-theme .eyebrow,html[data-theme="light"] .holiday-theme .eyebrow{color:#fde68a}
+.holiday-theme .btn.bg-amber-200{color:#09090b}

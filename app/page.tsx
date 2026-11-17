@@ -10,8 +10,8 @@ const paths = [
   { number: "04", title: "Events & business orders", text: "Party planning, reservation booking, group apparel and bulk orders. Tell us your occasion, quantities and the help you need; event dates require confirmation.", href: "/events-business", action: "Explore event & business services", secondary: "/party-planning", secondaryAction: "View planning & reservation details", image: null, alt: "", examples: "GATHER. CELEBRATE. CONNECT.", detail: "Events, groups & businesses" },
 ];
 export default function Home() {
-  return <div className="lucent-home"><BrandMasthead/>
-    <section className="relative overflow-hidden border-y border-amber-200/30 bg-gradient-to-br from-emerald-950 via-zinc-950 to-amber-950/60 py-12 sm:py-16">
+  return <div className="lucent-home">
+    <section className="holiday-theme relative overflow-hidden border-y border-amber-200/30 bg-gradient-to-br from-emerald-950 via-zinc-950 to-amber-950/60 py-12 sm:py-16">
       <div className="shell grid items-center gap-8 md:grid-cols-[1.1fr_.9fr]">
         <div>
           <p className="text-sm font-bold uppercase tracking-[.24em] text-amber-200">The Lucent holiday collection</p>
@@ -20,9 +20,10 @@ export default function Home() {
           <div className="my-6 flex flex-wrap gap-3 text-sm font-bold"><span className="rounded-full border border-amber-200/50 px-4 py-2">$25 gift set</span><span className="rounded-full border border-amber-200/50 px-4 py-2">$45 + shirt</span><span className="rounded-full border border-amber-200/50 px-4 py-2">$50 + shirt & phone pop</span></div>
           <Link href="/holiday-gifts" className="btn bg-amber-200 text-zinc-950">Explore holiday gifts →</Link>
         </div>
-        <Link href="/holiday-gifts" className="mx-auto block w-full max-w-md overflow-hidden rounded-3xl border border-amber-200/40 shadow-2xl"><Image src="/images/holiday/gwaup-mockup.png" alt="Holiday gift collection concept mockup with coordinated accessories, shirt and phone pop" width={1122} height={1402} sizes="(max-width: 768px) 100vw, 448px" priority className="h-auto w-full"/><span className="block bg-zinc-950 px-4 py-2 text-center text-xs text-zinc-300">Styled concept mockup · Explore all bundles</span></Link>
+        <Link href="/holiday-gifts" className="mx-auto block w-full max-w-md overflow-hidden rounded-3xl border border-amber-200/40 shadow-2xl"><Image src="/images/holiday/gwaup-holiday-full-set.png" alt="Holiday gift collection concept mockup with coordinated accessories, shirt and phone pop" width={1122} height={1402} sizes="(max-width: 768px) 100vw, 448px" priority className="h-auto w-full"/><span className="block bg-zinc-950 px-4 py-2 text-center text-xs text-zinc-300">Styled concept mockup · Explore all bundles</span></Link>
       </div>
     </section>
+    <BrandMasthead/>
     <section className="lp-hero shell">
       <div className="lp-hero-copy"><p className="lp-kicker">LUCENT PRINT · LAS VEGAS</p><h1>Raw ideas.<br /><em>Real creations.</em></h1><p className="lp-intro">Raw, innovative creativity—made personal. We create apparel and teamwear, custom gifts and drinkware, and 3D pieces. We also help with party planning, reservations and business orders.</p><div className="lp-actions"><Link className="lp-button" href="#paths-title">Explore what we do <ArrowRight size={18}/></Link><Link className="lp-text-link" href="/contact">Bring us your idea <ArrowUpRight size={18}/></Link></div></div>
       <div className="lp-hero-art"><div className="lp-image-frame"><Image src="/images/our-work/inspirada-green-front.jpg" alt="A finished Inspirada Bulldogs shirt made by Lucent Print" fill sizes="(max-width: 800px) 100vw, 50vw" priority className="object-cover"/></div><div className="lp-image-note"><span className="lp-dot"/> REAL PROJECT / TEAM APPAREL</div><div className="lp-floating-label">A little more <strong>you.</strong></div></div>
