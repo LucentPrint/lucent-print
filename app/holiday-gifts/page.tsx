@@ -28,8 +28,8 @@ export default function HolidayGifts() {
             <p className="mt-5 text-sm text-zinc-300">So many combinations to choose from.</p>
           </div>
           <figure className="overflow-hidden rounded-3xl border border-amber-200/25 bg-zinc-900 shadow-2xl">
-            <Image src="/images/holiday/gwaup-holiday-full-set.png" alt="Gwaup Boys holiday gift collection concept mockup showing tumbler, coaster, dog tag, air freshener, custom shirt and phone pop" width={1122} height={1402} priority sizes="(max-width: 1024px) 100vw, 50vw" className="h-auto w-full object-contain" />
-            <figcaption className="border-t border-white/10 px-5 py-3 text-sm text-zinc-300">Full $50 collection shown as a professional concept mockup. Shirt included at $45; shirt + phone pop at $50. Final artwork and print colors confirmed before production.</figcaption>
+            <Image src="/images/holiday/gwaup-holiday-full-set.png" alt="Gwaup Boys holiday gift collection design preview showing tumbler, coaster, dog tag, air freshener, custom shirt and phone pop" width={1122} height={1402} priority sizes="(max-width: 1024px) 100vw, 50vw" className="h-auto w-full object-contain" />
+            <figcaption className="border-t border-white/10 px-5 py-3 text-sm text-zinc-300">Full $50 collection shown as a professional design preview. Shirt included at $45; shirt + phone pop at $50. Final artwork and print colors confirmed before production.</figcaption>
           </figure>
         </div>
       </section>
@@ -60,7 +60,7 @@ export default function HolidayGifts() {
             <p className="eyebrow">Make it yours</p>
             <h2 className="mt-3 text-4xl font-black sm:text-5xl">One theme. A whole collection.</h2>
             <p className="mt-5 text-lg leading-relaxed text-zinc-300">See the matching look from tumbler to tee. Choose your colors, names and theme, then pick the bundle that fits your gift.</p>
-            <p className="mt-4 text-sm leading-relaxed text-zinc-400">All images below are styled concept mockups, not photographs of completed orders. The $25 set includes four accessories; the shirt is added at $45 and the phone pop at $50. Final artwork, materials, colors and availability are confirmed before production.</p>
+            <p className="mt-4 text-sm leading-relaxed text-zinc-400">All images below are styled design previews, not photographs of completed orders. The $25 set includes four accessories; the shirt is added at $45 and the phone pop at $50. Final artwork, materials, colors and availability are confirmed before production.</p>
           </div>
           <div className="grid gap-8 md:grid-cols-2">
             {[
@@ -70,10 +70,10 @@ export default function HolidayGifts() {
               { name: "Deepgram", image: "deepgram-holiday-full-set.png" },
               { name: "Your Logo Here", image: "your-logo-holiday-full-set.png" },
             ].map((design) => <figure key={design.name} className="overflow-hidden rounded-3xl border border-amber-200/25 bg-zinc-900 shadow-xl">
-              <a href={`/images/holiday/${design.image}`} target="_blank" rel="noopener noreferrer" aria-label={`View ${design.name} gift collection mockup full size`}>
-                <Image src={`/images/holiday/${design.image}`} alt={`${design.name} concept mockup with coordinated tumbler, coaster, dog tag, air freshener, shirt and phone pop`} width={1122} height={1402} sizes="(max-width: 768px) 100vw, 50vw" className="h-auto w-full" />
+              <a href={`/images/holiday/${design.image}`} target="_blank" rel="noopener noreferrer" aria-label={`View ${design.name} gift collection full size`}>
+                <Image src={`/images/holiday/${design.image}`} alt={`${design.name} design preview with coordinated tumbler, coaster, dog tag, air freshener, shirt and phone pop`} width={1122} height={1402} sizes="(max-width: 768px) 100vw, 50vw" className="h-auto w-full" />
               </a>
-              <figcaption className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 px-5 py-4"><span className="font-bold">{design.name}</span><span className="text-xs uppercase tracking-wider text-amber-200">Full $50 collection · Concept mockup</span></figcaption>
+              <figcaption className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 px-5 py-4"><span className="font-bold">{design.name}</span><span className="text-xs uppercase tracking-wider text-amber-200">Full $50 collection</span></figcaption>
             </figure>)}
           </div>
           <Link href="/contact" className="btn btn-secondary mt-8">Talk through your design</Link>
